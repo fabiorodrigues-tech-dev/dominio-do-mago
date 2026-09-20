@@ -5,42 +5,48 @@
 
 @layer base {
   :root {
-    /* Backgrounds Globais */
-    --canvas-bg: #F2F2F7;
+    /* Backgrounds Globais - Padrão Místico Escuro (DesignCode UI) */
+    --canvas-bg: #09090b;
 
     /* Foreground (Textos e Ícones) */
-    --fg-primary: #000000;
-    --fg-secondary: rgba(60, 60, 67, 0.6);
-    --fg-tertiary: rgba(60, 60, 67, 0.3);
+    --fg-primary: #FFFFFF;
+    --fg-secondary: rgba(235, 235, 245, 0.7);
+    --fg-tertiary: rgba(235, 235, 245, 0.4);
 
-    /* Containers (Cartões) */
-    --container-bg: rgba(255, 255, 255, 0.7);
-    --container-border: rgba(0, 0, 0, 0.1);
-    --container-divider: rgba(0, 0, 0, 0.05);
+    /* Containers (Cartões Glassmorphism) */
+    --container-bg: rgba(255, 255, 255, 0.05);
+    --container-border: rgba(255, 255, 255, 0.12);
+    --container-divider: rgba(255, 255, 255, 0.08);
 
     /* Botões */
-    --btn-primary: #007AFF;
-    --btn-hover: #0056B3;
+    --btn-primary: #8B5CF6;
+    --btn-hover: #7C3AED;
     --btn-foreground: #FFFFFF;
   }
 
   .dark {
-    /* Backgrounds Globais (Mesh base) */
-    --canvas-bg: #000000;
-
-    /* Foreground */
+    --canvas-bg: #09090b;
     --fg-primary: #FFFFFF;
-    --fg-secondary: rgba(235, 235, 245, 0.6);
-    --fg-tertiary: rgba(235, 235, 245, 0.3);
-
-    /* Containers */
+    --fg-secondary: rgba(235, 235, 245, 0.7);
+    --fg-tertiary: rgba(235, 235, 245, 0.4);
     --container-bg: rgba(255, 255, 255, 0.05);
-    --container-border: rgba(255, 255, 255, 0.15);
+    --container-border: rgba(255, 255, 255, 0.12);
     --container-divider: rgba(255, 255, 255, 0.08);
+    --btn-primary: #8B5CF6;
+    --btn-hover: #7C3AED;
+    --btn-foreground: #FFFFFF;
+  }
 
-    /* Botões */
-    --btn-primary: #0A84FF;
-    --btn-hover: #0066CC;
+  .light {
+    --canvas-bg: #F2F2F7;
+    --fg-primary: #000000;
+    --fg-secondary: rgba(60, 60, 67, 0.6);
+    --fg-tertiary: rgba(60, 60, 67, 0.3);
+    --container-bg: rgba(255, 255, 255, 0.7);
+    --container-border: rgba(0, 0, 0, 0.1);
+    --container-divider: rgba(0, 0, 0, 0.05);
+    --btn-primary: #007AFF;
+    --btn-hover: #0056B3;
     --btn-foreground: #FFFFFF;
   }
 
