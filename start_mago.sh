@@ -16,12 +16,15 @@ cleanup() {
   echo ""
   echo "🛑 A encerrar os feitiços do Domínio do Mago..."
   if [ -n "$SPRING_PID" ]; then
-    kill "$SPRING_PID" 2>/dev/null
+    kill -9 "$SPRING_PID" 2>/dev/null
+  fi
+  if [ -n "$FRONTEND_PID" ]; then
+    kill -9 "$FRONTEND_PID" 2>/dev/null
   fi
   exit 0
 }
 
-trap cleanup SIGINT SIGTERM EXIT
+trap cleanup SIGINT SIGTERM
 
 echo "1. A iniciar o Cofre (Docker PostgreSQL)..."
 if command -v docker-compose &> /dev/null; then
@@ -105,5 +108,6 @@ done
 
 echo "4. A preparar a Magia Visual (Next.js)..."
 cd frontend
-npm install
-npm run dev
+npm run dev &
+FRONTEND_PID=$!
+wait $SPRING_PID $FRONTEND_PID
