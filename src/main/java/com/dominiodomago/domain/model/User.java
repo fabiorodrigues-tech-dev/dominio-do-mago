@@ -68,6 +68,12 @@ public class User implements UserDetails {
     @Column(name = "energy", nullable = false)
     private Integer energy = 100;
 
+    @Column(name = "prana_level", nullable = false)
+    private Integer pranaLevel = 100;
+
+    @Column(name = "last_prana_updated_at")
+    private LocalDateTime lastPranaUpdatedAt;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -124,6 +130,12 @@ public class User implements UserDetails {
 
     public Integer getEnergy() { return energy != null ? energy : 100; }
     public void setEnergy(Integer energy) { this.energy = energy; }
+
+    public Integer getPranaLevel() { return pranaLevel != null ? pranaLevel : 100; }
+    public void setPranaLevel(Integer pranaLevel) { this.pranaLevel = pranaLevel; }
+
+    public LocalDateTime getLastPranaUpdatedAt() { return lastPranaUpdatedAt; }
+    public void setLastPranaUpdatedAt(LocalDateTime lastPranaUpdatedAt) { this.lastPranaUpdatedAt = lastPranaUpdatedAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

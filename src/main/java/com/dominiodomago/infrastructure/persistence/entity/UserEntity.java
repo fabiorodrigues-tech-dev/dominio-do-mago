@@ -64,6 +64,12 @@ public class UserEntity {
     @Column(nullable = false)
     private int energy = 100;
 
+    @Column(name = "prana_level", nullable = false)
+    private int pranaLevel = 100;
+
+    @Column(name = "last_prana_updated_at")
+    private OffsetDateTime lastPranaUpdatedAt;
+
     protected UserEntity() {
         // JPA
     }
@@ -110,4 +116,10 @@ public class UserEntity {
 
     public int getEnergy() { return energy; }
     public void setEnergy(int energy) { this.energy = energy; }
+
+    public int getPranaLevel() { return pranaLevel; }
+    public void setPranaLevel(int pranaLevel) { this.pranaLevel = pranaLevel; }
+
+    public OffsetDateTime getLastPranaUpdatedAt() { return lastPranaUpdatedAt; }
+    public void setLastPranaUpdatedAt(OffsetDateTime lastPranaUpdatedAt) { this.lastPranaUpdatedAt = lastPranaUpdatedAt; }
 }

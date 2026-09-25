@@ -41,7 +41,8 @@ public class UserController {
             int airElement,
             String avatarGlbUrl,
             int hp,
-            int energy
+            int energy,
+            int pranaLevel
     ) {}
 
     @GetMapping("/me/dashboard")
@@ -63,7 +64,8 @@ public class UserController {
                 user.getAirXp() != null ? user.getAirXp() : 60,
                 user.getAvatarGlbUrl(),
                 user.getHp() != null ? user.getHp() : 100,
-                user.getEnergy() != null ? user.getEnergy() : 100
+                user.getEnergy() != null ? user.getEnergy() : 100,
+                user.getPranaLevel() != null ? user.getPranaLevel() : 100
         );
 
         return ResponseEntity.ok(response);

@@ -38,6 +38,7 @@ export interface DashboardData {
   avatarGlbUrl?: string;
   hp?: number;
   energy?: number;
+  pranaLevel?: number;
 }
 
 export const getUserDashboardData = async (): Promise<DashboardData> => {
