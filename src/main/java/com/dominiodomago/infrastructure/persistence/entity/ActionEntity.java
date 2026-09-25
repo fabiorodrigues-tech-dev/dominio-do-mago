@@ -53,6 +53,12 @@ public class ActionEntity {
     @Column(name = "controlled_by_rotation_id", length = 100)
     private String controlledByRotationId;
 
+    @Column(name = "is_completed")
+    private Boolean isCompleted = false;
+
+    @Column(name = "last_completed_at")
+    private OffsetDateTime lastCompletedAt;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
@@ -176,5 +182,21 @@ public class ActionEntity {
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getIsCompleted() {
+        return isCompleted;
+    }
+
+    public void setIsCompleted(Boolean isCompleted) {
+        this.isCompleted = isCompleted;
+    }
+
+    public OffsetDateTime getLastCompletedAt() {
+        return lastCompletedAt;
+    }
+
+    public void setLastCompletedAt(OffsetDateTime lastCompletedAt) {
+        this.lastCompletedAt = lastCompletedAt;
     }
 }

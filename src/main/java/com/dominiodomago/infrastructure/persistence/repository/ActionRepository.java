@@ -10,7 +10,11 @@ import java.util.UUID;
 @Repository
 public interface ActionRepository extends JpaRepository<ActionEntity, String> {
     List<ActionEntity> findByUserId(UUID userId);
+    List<ActionEntity> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    List<ActionEntity> findByUserIdAndIsCompletedFalseOrderByCreatedAtDesc(UUID userId);
     List<ActionEntity> findByAreaId(String areaId);
     List<ActionEntity> findByControlledByRotationId(String controlledByRotationId);
     List<ActionEntity> findByRecurrenceEnabledTrue();
+    java.util.Optional<ActionEntity> findFirstByUserIdAndTitleContainingIgnoreCase(UUID userId, String title);
+    java.util.Optional<ActionEntity> findFirstByTitleContainingIgnoreCase(String title);
 }
