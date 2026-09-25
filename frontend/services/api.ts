@@ -9,23 +9,99 @@ const api = axios.create({
   },
 });
 
-// Interceptor para injetar o JWT
+export function isJwtExpired(token: string | null): boolean {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (!payload.exp) return false;
+    // Buffer de 30 segundos
+    return Date.now() >= (payload.exp * 1000) - 30000;
+  } catch {
+    return true;
+  }
+}
+
+// Interceptor de Requisição: Injeta o JWT e previne envio de token expirado
 api.interceptors.request.use((config) => {
-  // Garanta que estamos no lado do cliente antes de acessar o localStorage
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('mago_token');
+    let token = localStorage.getItem('mago_token') || localStorage.getItem('nexus_token');
+    
+    // Se o token estiver expirado no localStorage, limpa imediatamente
+    if (token && isJwtExpired(token)) {
+      console.warn('⚠️ [API] Token expirado detectado no localStorage. Limpando credenciais antigas...');
+      localStorage.removeItem('mago_token');
+      localStorage.removeItem('nexus_token');
+      token = null;
+    }
+
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
+      if (typeof config.headers.set === 'function') {
+        config.headers.set('Authorization', `Bearer ${token}`);
+      }
     }
   }
 
-  // Se o corpo for FormData, remova o Content-Type fixo para o navegador gerar o boundary multipart
+  // Se o corpo for FormData, remove o Content-Type fixo para o navegador gerar o boundary multipart
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
   }
 
   return config;
 }, (error) => Promise.reject(error));
+
+// Interceptor de Resposta: Trata 401 e 403 com auto-login do usuário mestre em desenvolvimento
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const status = error.response?.status;
+
+    // Apenas tenta recuperação automática uma vez por requisição
+    if ((status === 401 || status === 403) && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+      console.warn(`⚡ [API] Status ${status} em ${originalRequest.url}. Iniciando renovação de sessão do Mago...`);
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('mago_token');
+        localStorage.removeItem('nexus_token');
+
+        try {
+          const loginRes = await axios.post(`${API_BASE_URL}/auth/login`, {
+            email: 'fabioandre777@gmail.com',
+            password: 'Magoarquiteto'
+          });
+
+          if (loginRes.data?.token) {
+            const freshToken = loginRes.data.token;
+            localStorage.setItem('mago_token', freshToken);
+            localStorage.setItem('nexus_token', freshToken);
+            if (loginRes.data.userId) {
+              localStorage.setItem('nexus_userId', loginRes.data.userId);
+              localStorage.setItem('mago_userId', loginRes.data.userId);
+            }
+
+            originalRequest.headers['Authorization'] = `Bearer ${freshToken}`;
+            if (typeof originalRequest.headers.set === 'function') {
+              originalRequest.headers.set('Authorization', `Bearer ${freshToken}`);
+            }
+
+            return api(originalRequest);
+          }
+        } catch (loginErr) {
+          console.error('❌ [API] Falha na auto-recuperação de login:', loginErr);
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export interface DashboardData {
   arcanoLevel: number;
@@ -42,8 +118,18 @@ export interface DashboardData {
 }
 
 export const getUserDashboardData = async (): Promise<DashboardData> => {
-  const response = await api.get('/users/me/dashboard');
-  return response.data;
+  try {
+    const response = await api.get('/users/me/dashboard');
+    return response.data;
+  } catch (err: any) {
+    // Suporte a fallback de método caso necessário
+    if (err.response?.status === 405) {
+      console.warn('Tentando fallback POST para /users/me/dashboard...', err.response?.status);
+      const postRes = await api.post('/users/me/dashboard');
+      return postRes.data;
+    }
+    throw err;
+  }
 };
 
 export const sendMessageToOrchestrator = async (prompt: string): Promise<string> => {

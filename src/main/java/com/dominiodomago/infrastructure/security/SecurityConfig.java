@@ -37,10 +37,19 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // Libera explícitamente preflight CORS
                         .requestMatchers("/api/auth/**").permitAll() // Libera rotas de auth
-                        .anyRequest().authenticated() // Protege as demais rotas (Chat, Users)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me/dashboard", "/api/users/dashboard").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users/me/dashboard", "/api/users/dashboard").authenticated()
+                        .anyRequest().authenticated() // Protege as demais rotas (Chat, Users, Actions)
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
+                        })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
