@@ -30,7 +30,7 @@ import {
   Skull
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUserDashboardData, DashboardData } from '../services/api';
+import api, { getUserDashboardData, DashboardData } from '../services/api';
 import { useNavigation, NavigationTab } from '../contexts/NavigationContext';
 
 export default function MagoDashboard() {
@@ -40,10 +40,16 @@ export default function MagoDashboard() {
 
   const loadDashboard = async () => {
     try {
-      const data = await getUserDashboardData();
-      setDashboardData(data);
+      const response = await api.get<DashboardData>('/users/me/dashboard');
+      setDashboardData(response.data);
     } catch (error) {
-      console.error("Erro ao carregar dados do dashboard:", error);
+      console.error("Erro ao carregar dados do dashboard via GET /users/me/dashboard:", error);
+      try {
+        const fallbackData = await getUserDashboardData();
+        setDashboardData(fallbackData);
+      } catch (fallbackError) {
+        console.error("Erro no fallback do dashboard:", fallbackError);
+      }
     }
   };
 

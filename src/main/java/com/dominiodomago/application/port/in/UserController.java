@@ -45,7 +45,11 @@ public class UserController {
             int pranaLevel
     ) {}
 
-    @RequestMapping(value = {"/me/dashboard", "/dashboard"}, method = {RequestMethod.GET, RequestMethod.POST})
+    /**
+     * Endpoint canônico de leitura do Dashboard do Mago.
+     * Padronizado como GET por se tratar estritamente de uma leitura de estado arcano (RESTful GET).
+     */
+    @GetMapping({"/me/dashboard", "/dashboard"})
     public ResponseEntity<DashboardResponse> getUserDashboard() {
         User user = null;
         var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -58,7 +62,7 @@ public class UserController {
         }
 
         if (user == null) {
-            // Fallback de desenvolvimento seguro para o Mestre Arcano
+            // Fallback de desenvolvimento seguro para o Mestre Arcano (Fábio Rodrigues)
             user = userRepository.findByEmail("fabioandre777@gmail.com")
                     .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null));
         }
@@ -85,6 +89,15 @@ public class UserController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Suporte a POST mantido para compatibilidade retroativa com clientes legados e
+     * fallbacks de navegadores que realizavam tentativas em POST após erros de proxy.
+     */
+    @PostMapping({"/me/dashboard", "/dashboard"})
+    public ResponseEntity<DashboardResponse> getUserDashboardPostFallback() {
+        return getUserDashboard();
     }
 
     public record AvatarResponse(String message, String avatarUrl) {}

@@ -42,7 +42,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         try {
-            jwt = authHeader.substring(7);
+            jwt = authHeader.substring(7).trim();
             userEmail = jwtUtil.extractUsername(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -56,10 +56,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    logger.warn("Token JWT inválido para usuário: " + userEmail);
                 }
             }
         } catch (Exception e) {
-            logger.error("Token falhou: " + e.getMessage());
+            logger.warn("Falha ao extrair/validar token JWT: " + e.getMessage());
         }
         filterChain.doFilter(request, response);
     }

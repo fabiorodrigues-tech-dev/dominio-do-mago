@@ -23,23 +23,27 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
+    private final org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          CustomUserDetailsService userDetailsService,
+                          org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
+        this.corsConfigurationSource = corsConfigurationSource;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Desativando CSRF para APIs stateless
-                .cors(Customizer.withDefaults()) // Configuração de CORS conectada ao Bean WebMvcConfigurer
+                .csrf(AbstractHttpConfigurer::disable) // Desativando CSRF para rotas stateless /api/**
+                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // CORS explícito com localhost:3000
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // Libera explícitamente preflight CORS
                         .requestMatchers("/api/auth/**").permitAll() // Libera rotas de auth
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me/dashboard", "/api/users/dashboard").authenticated()
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users/me/dashboard", "/api/users/dashboard").authenticated()
-                        .anyRequest().authenticated() // Protege as demais rotas (Chat, Users, Actions)
+                        .requestMatchers("/api/users/**").authenticated() // Protege todas as rotas de usuários (incluindo /me/dashboard)
+                        .requestMatchers("/api/actions/**").authenticated() // Protege todas as rotas do motor de ações e prana
+                        .anyRequest().authenticated() // Protege as demais rotas (Chat, Tasks, Timeblocks)
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
