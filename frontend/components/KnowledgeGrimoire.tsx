@@ -110,9 +110,9 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
  case 'PLATINUM':
  case 'PLATINA':
  return {
- badge: 'text-purple-200 bg-purple-950/60 border-purple-400/50',
- card: 'bg-gradient-to-br from-purple-950/40 via-purple-900/20 to-black/50 border-purple-500/40 hover:border-purple-300/70 shadow-[0_0_20px_rgba(168,85,247,0.25)]',
- glow: 'text-purple-300 drop-shadow-[0_0_8px_rgba(192,132,252,0.6)]',
+ badge: 'text-sky-200 bg-sky-950/60 border-sky-400/50',
+ card: 'bg-gradient-to-br from-sky-950/40 via-blue-900/20 to-black/50 border-sky-500/40 hover:border-sky-300/70 shadow-[0_0_20px_rgba(56,189,248,0.25)]',
+ glow: 'text-sky-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]',
  name: 'Platina'
  };
  case 'GOLD':
@@ -160,11 +160,11 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
  initial={{ opacity: 0, y: 6 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.3 }}
- className="p-6 rounded-3xl glass-card border border-white/10 shadow-2xl bg-gradient-to-r from-purple-950/30 via-slate-900/40 to-black/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+ className="p-6 rounded-3xl designcode-card shadow-2xl bg-container-bg border-container-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
  >
  <div className="flex items-center gap-3.5">
- <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-600/30 to-indigo-600/20 border border-purple-400/30 text-purple-200 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
- <BookOpen className="w-6 h-6 text-purple-300" />
+ <div className="p-3 rounded-2xl bg-btn-primary/20 border border-btn-primary/40 text-fg-primary shadow-sm">
+ <BookOpen className="w-6 h-6 text-btn-primary" />
  </div>
  <div>
  <h2 className="text-base sm:text-lg font-bold text-white tracking-tight drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">
@@ -178,7 +178,7 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
 
  <div className="sm:text-right bg-white/[0.03] sm:bg-transparent px-3 py-1.5 sm:p-0 rounded-xl border sm:border-0 border-white/5">
  <span className="text-[10px] uppercase tracking-wider text-white/60 font-mono">Consistência</span>
- <p className="text-xs sm:text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-cyan-300">
+ <p className="text-xs sm:text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
  Nível 5 Máximo (Transcendência)
  </p>
  </div>
@@ -192,7 +192,7 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
  initial={{ opacity: 0, y: 8 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.35, delay: 0.05 }}
- className="p-6 rounded-3xl glass-card border border-white/10 shadow-2xl space-y-4 hover:border-white/20 transition-all"
+ className="p-6 rounded-3xl designcode-card border border-white/10 shadow-2xl space-y-4 hover:border-white/20 transition-all"
  >
  <div className="flex justify-between items-center">
  <div>
@@ -276,24 +276,24 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
  initial={{ opacity: 0, y: 8 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.35, delay: 0.1 }}
- className="p-6 rounded-3xl glass-card border border-white/10 shadow-2xl flex flex-col justify-between gap-4 hover:border-white/20 transition-all"
+ className="p-6 rounded-3xl designcode-card border border-white/10 shadow-2xl flex flex-col justify-between gap-4 hover:border-white/20 transition-all"
  >
  <div>
  <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">
- <Sparkles className="w-4 h-4 text-purple-400" />
+ <Sparkles className="w-4 h-4 text-btn-primary" />
  Sistemas de Proteção & Foco
  </h3>
  <p className="text-[11px] text-white/60 mt-0.5">Garantias contra quebra de rotina</p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 flex-1">
- <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-950/30 to-black/40 border border-purple-500/20 flex flex-col justify-between hover:border-purple-500/40 transition-all">
+ <div className="p-4 rounded-2xl bg-gradient-to-br bg-container-bg border border-container-border flex flex-col justify-between hover:border-container-border/80 transition-all">
  <div className="flex items-center justify-between mb-2">
  <span className="text-[11px] font-bold text-slate-200 uppercase tracking-wider">Multiplicador</span>
- <Zap className="w-4 h-4 text-purple-400 animate-pulse" />
+ <Zap className="w-4 h-4 text-btn-primary animate-pulse" />
  </div>
  <div>
- <p className="text-2xl font-bold font-mono text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">
+ <p className="text-2xl font-bold font-mono text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400">
  1.5x XP
  </p>
  <p className="text-[11px] text-white/60 mt-1">Bônus de Foco Supremo ativo</p>
@@ -328,17 +328,17 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
  initial={{ opacity: 0, y: 8 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.35, delay: 0.15 }}
- className="p-6 rounded-3xl glass-card border border-white/10 shadow-2xl space-y-4 hover:border-white/20 transition-all"
+ className="p-6 rounded-3xl designcode-card border border-white/10 shadow-2xl space-y-4 hover:border-white/20 transition-all"
  >
  <div className="flex justify-between items-center">
  <div>
  <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">
- <History className="w-4 h-4 text-purple-400" />
+ <History className="w-4 h-4 text-btn-primary" />
  Histórico Recente de Rituais
  </h3>
  <p className="text-[11px] text-white/60 mt-0.5">Atos forjados na linha do tempo</p>
  </div>
- <span className="text-xs font-mono font-semibold text-purple-300 bg-purple-950/40 px-2.5 py-1 rounded-full border border-purple-500/20">
+ <span className="text-xs font-mono font-semibold text-btn-primary bg-container-bg px-2.5 py-1 rounded-full border border-container-border">
  {completedRituals.length} Concluídos
  </span>
  </div>
@@ -358,7 +358,7 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
  key={ritual.id}
  initial={{ opacity: 0, x: -6 }}
  animate={{ opacity: 1, x: 0 }}
- className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-500/30 transition-all flex items-center justify-between gap-3 shadow-sm"
+ className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-container-border/80 transition-all flex items-center justify-between gap-3 shadow-sm"
  >
  <div className="flex items-center gap-2.5 overflow-hidden">
  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -367,7 +367,7 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
 
  <div className="flex items-center gap-2 shrink-0">
  {getElementBadge(ritual.element)}
- <span className="text-[11px] font-mono font-bold text-purple-300 bg-purple-950/50 px-2 py-0.5 rounded-lg border border-purple-500/20">
+ <span className="text-[11px] font-mono font-bold text-btn-primary bg-container-bg px-2 py-0.5 rounded-lg border border-container-border">
  +{ritual.xpReward || 50} XP
  </span>
  </div>
@@ -382,7 +382,7 @@ export default function KnowledgeGrimoire({ dashboardData }: KnowledgeGrimoirePr
  initial={{ opacity: 0, y: 8 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.35, delay: 0.2 }}
- className="p-6 rounded-3xl glass-card border border-amber-500/20 shadow-2xl space-y-4 hover:border-amber-500/30 transition-all"
+ className="p-6 rounded-3xl designcode-card border border-amber-500/20 shadow-2xl space-y-4 hover:border-amber-500/30 transition-all"
  >
  <div className="flex items-center justify-between">
  <div>

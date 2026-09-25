@@ -111,7 +111,7 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 selection:bg-purple-500/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 selection:bg-btn-primary/30">
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -125,20 +125,20 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="relative w-full max-w-2xl bg-slate-900/90 border border-purple-500/30 rounded-3xl p-6 md:p-8 shadow-2xl shadow-purple-950/40 text-slate-100 overflow-hidden"
+        className="relative w-full max-w-2xl designcode-card p-6 md:p-8 shadow-2xl text-fg-primary overflow-hidden"
       >
         {/* Glow de fundo */}
-        <div className="absolute -top-24 -right-24 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
+            <div className="p-2.5 rounded-2xl bg-btn-primary/20 border border-btn-primary/40 text-btn-primary">
               <Wand2 className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-purple-300 via-cyan-200 to-indigo-300 bg-clip-text text-transparent">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-blue-300 via-cyan-200 to-indigo-300 bg-clip-text text-transparent">
                 A Forja do Avatar 3D
               </h2>
               <p className="text-xs text-slate-400">
@@ -179,8 +179,8 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
               onClick={() => !isForging && triggerUploadForSlot(index)}
               className={`relative aspect-[3/4] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-all overflow-hidden group ${
                 slot.previewUrl 
-                  ? 'border-purple-500/60 bg-slate-950/80 shadow-lg shadow-purple-950/20' 
-                  : 'border-slate-800 hover:border-purple-500/40 bg-slate-950/40 hover:bg-slate-950/60'
+                  ? 'border-btn-primary/60 bg-container-bg shadow-lg' 
+                  : 'border-slate-800 hover:border-container-border/80 bg-black/40'
               } ${isForging ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {slot.previewUrl ? (
@@ -191,7 +191,7 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
                     className="w-full h-full object-cover rounded-xl"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
-                    <span className="text-[10px] font-semibold text-purple-200">{slot.label}</span>
+                    <span className="text-[10px] font-semibold text-fg-primary">{slot.label}</span>
                     <button 
                       onClick={(e) => removeSlotImage(index, e)}
                       className="p-1 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors"
@@ -202,7 +202,7 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
                 </>
               ) : (
                 <div className="flex flex-col items-center gap-2 p-2">
-                  <div className="p-2 rounded-xl bg-slate-800/60 text-slate-400 group-hover:text-purple-300 transition-colors">
+                  <div className="p-2 rounded-xl bg-slate-800/60 text-slate-400 group-hover:text-btn-primary transition-colors">
                     <UploadCloud className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-semibold text-slate-300">{slot.label}</span>
@@ -220,18 +220,18 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mb-6 p-4 rounded-2xl bg-purple-950/30 border border-purple-500/40 flex flex-col items-center justify-center gap-3 text-center"
+              className="mb-6 p-4 rounded-2xl bg-container-bg border border-container-border flex flex-col items-center justify-center gap-3 text-center"
             >
               <div className="relative w-12 h-12 flex items-center justify-center">
                 <motion.div 
                   animate={{ rotate: 360 }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="absolute inset-0 rounded-full border-2 border-purple-500/20 border-t-cyan-400 border-r-purple-500"
+                  className="absolute inset-0 rounded-full border-2 border-container-border border-t-cyan-400 border-r-btn-primary"
                 />
                 <Sparkles className="w-6 h-6 text-cyan-300 animate-pulse" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-purple-200 animate-pulse">
+                <h4 className="text-sm font-bold text-fg-primary animate-pulse">
                   Transmutando matéria através dos planos astrais...
                 </h4>
                 <p className="text-[11px] text-slate-400 mt-1">
@@ -259,7 +259,7 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
             <button
               onClick={handleForge}
               disabled={isForging || selectedFiles.length === 0}
-              className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white shadow-lg shadow-purple-900/30 hover:shadow-purple-700/50 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold designcode-btn-primary shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-4 h-4" />
               {isForging ? 'Transmutando...' : 'Forjar Avatar'}

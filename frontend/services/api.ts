@@ -93,6 +93,135 @@ export interface TaskItem {
   completed: boolean;
 }
 
+export type EnergyType = 'NEUTRAL' | 'RESTORATIVE' | 'POISON';
+
+export interface IActionLike {
+  id: string;
+  userId?: string;
+  title: string;
+  description?: string;
+  areaId?: string;
+  taskEnergyType?: EnergyType | string;
+  baseValue?: number;
+  recurrenceEnabled?: boolean;
+  recurrenceType?: string;
+  isCompleted?: boolean;
+  lastCompletedAt?: string;
+  createdAt?: string;
+  element?: string;
+  xpReward?: number;
+  completed?: boolean;
+  type?: string;
+}
+
+export interface CompleteActionResponse {
+  success: boolean;
+  action: IActionLike;
+  finalScore: number;
+  currentPrana: number;
+  exhausted: boolean;
+  pranaMessage: string;
+  message: string;
+}
+
+export interface PranaStatus {
+  pranaLevel: number;
+  exhausted: boolean;
+  message: string;
+}
+
+export const getActions = async (): Promise<IActionLike[]> => {
+  try {
+    const response = await api.get('/actions');
+    return response.data;
+  } catch (err) {
+    console.warn('Fallback to legacy /tasks endpoint:', err);
+    const tasks = await getTasks();
+    return tasks.map(t => ({
+      id: t.id,
+      userId: t.userId,
+      title: t.title,
+      areaId: t.element ? `area-${t.element.toLowerCase()}` : 'area-fogo',
+      element: t.element,
+      taskEnergyType: 'NEUTRAL',
+      baseValue: t.xpReward || 20,
+      recurrenceEnabled: t.type === 'habit',
+      recurrenceType: t.type === 'habit' ? 'DAILY' : undefined,
+      isCompleted: t.completed,
+      completed: t.completed,
+      xpReward: t.xpReward,
+      type: t.type,
+      createdAt: t.createdAt
+    }));
+  }
+};
+
+export const createAction = async (data: {
+  title: string;
+  description?: string;
+  areaId?: string;
+  taskEnergyType?: string;
+  baseValue?: number;
+  recurrenceEnabled?: boolean;
+  recurrenceType?: string;
+}): Promise<IActionLike> => {
+  try {
+    const response = await api.post('/actions', data);
+    triggerDashboardRefresh();
+    return response.data;
+  } catch (err) {
+    console.warn('Falha em /actions, usando fallback local/tasks:', err);
+    const elem = data.areaId?.replace('area-', '') || 'fogo';
+    const legacy = await createTask({
+      title: data.title,
+      type: data.recurrenceEnabled ? 'habit' : 'daily',
+      element: elem,
+      xpReward: data.baseValue ? Math.round(data.baseValue) : 50
+    });
+    return {
+      id: legacy.id,
+      title: legacy.title,
+      taskEnergyType: data.taskEnergyType || 'NEUTRAL',
+      baseValue: legacy.xpReward,
+      recurrenceEnabled: data.recurrenceEnabled,
+      isCompleted: legacy.completed,
+      completed: legacy.completed,
+      element: legacy.element
+    };
+  }
+};
+
+export const completeAction = async (
+  id: string,
+  options?: {
+    durationMinutes?: number;
+    presenceSeconds?: number;
+    effortLevel?: number;
+    secondaryAreaIds?: string[];
+  }
+): Promise<CompleteActionResponse> => {
+  const response = await api.post(`/actions/${id}/complete`, options || {});
+  triggerDashboardRefresh();
+  return response.data;
+};
+
+export const toggleAction = async (id: string): Promise<CompleteActionResponse> => {
+  const response = await api.patch(`/actions/${id}/toggle`);
+  triggerDashboardRefresh();
+  return response.data;
+};
+
+export const getPranaStatus = async (): Promise<PranaStatus> => {
+  const response = await api.get('/actions/prana');
+  return response.data;
+};
+
+export const rechargePrana = async (): Promise<PranaStatus> => {
+  const response = await api.post('/actions/prana/recharge');
+  triggerDashboardRefresh();
+  return response.data;
+};
+
 export const getTasks = async (): Promise<TaskItem[]> => {
   const response = await api.get('/tasks');
   return response.data;

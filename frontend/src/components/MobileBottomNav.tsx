@@ -31,7 +31,7 @@ export default function MobileBottomNav() {
   return (
     <nav 
       aria-label="Navegação Mobile"
-      className="flex md:hidden fixed bottom-4 left-4 right-4 z-50 glass-card bg-white/10 dark:bg-white/5 backdrop-blur-3xl border border-white/15 dark:border-white/10 rounded-3xl shadow-2xl shadow-purple-950/40 p-4 justify-around items-center"
+      className="flex md:hidden fixed bottom-4 left-4 right-4 z-50 designcode-card p-3 justify-around items-center"
     >
       {navButtons.map(({ id, label, icon: Icon }) => {
         const isActive = activeTab === id;

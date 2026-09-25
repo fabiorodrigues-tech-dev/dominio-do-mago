@@ -99,7 +99,7 @@ function AvatarScene({ auraRadius = 5.0 }: { auraRadius?: number }) {
 
   return (
     <group>
-      {/* 1. Camada Arcana de Partículas Violeta / Magenta */}
+      {/* 1. Camada Arcana de Partículas Cósmicas */}
       <Sparkles
         count={isMaxLevel ? 160 : Math.floor(effectiveRadius * 30)} 
         scale={effectiveRadius * 1.6}
@@ -151,9 +151,9 @@ export default function AuraAvatar3D({ auraRadius = 5.0 }: AuraAvatar3DProps) {
   return (
     <div className="w-full h-full min-h-[360px] md:min-h-[420px] bg-transparent rounded-3xl overflow-hidden relative select-none">
       {/* Tag de Nível Máximo Cyberpunk */}
-      <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-black/60 border border-purple-500/40 px-3 py-1.5 rounded-full backdrop-blur-xl shadow-lg shadow-purple-950/40">
+      <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-black/60 border border-container-border px-3 py-1.5 rounded-full backdrop-blur-xl shadow-lg">
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-        <span className="text-[11px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-cyan-300 uppercase tracking-wider">
+        <span className="text-[11px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-cyan-300 to-teal-300 uppercase tracking-wider">
           AURA MÁXIMA • NÍVEL 5 (50cm)
         </span>
       </div>
