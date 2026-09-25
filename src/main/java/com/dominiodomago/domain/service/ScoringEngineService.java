@@ -17,11 +17,6 @@ public class ScoringEngineService {
 
     private static final Logger log = LoggerFactory.getLogger(ScoringEngineService.class);
 
-    // Parâmetros da Curva Agressiva de Tempo
-    private static final double AGGRESSIVE_DECAY_RATE = 0.025; // k na fórmula e^(-k * t)
-    private static final double MIN_TIME_MULTIPLIER = 0.15;     // Piso mínimo para evitar perda de incentivo
-    private static final double MAX_EARLY_BONUS_MULTIPLIER = 1.50; // Teto de bônus por agilidade
-
     // Proporções de Distribuição Multi-Área (Conselho Elemental v4.0 / ADR-000)
     public static final BigDecimal PRIMARY_AREA_WEIGHT = BigDecimal.valueOf(1.00);   // 100%
     public static final BigDecimal SECONDARY_AREA_WEIGHT = BigDecimal.valueOf(0.60); // 60%
@@ -38,79 +33,143 @@ public class ScoringEngineService {
     public record MultiAreaScoreDistribution(
             BigDecimal baseValue,
             BigDecimal finalScore,
+            double presenceBonus,
+            double effortMultiplier,
             double timeMultiplier,
             double astroMultiplier,
-            double streakMultiplier,
-            double pranaMultiplier,
+            double exhaustionMultiplier,
             Map<String, BigDecimal> areaDistribution,
             Map<String, BigDecimal> elementDistribution
     ) {}
 
     /**
-     * Calcula o multiplicador através da Curva Agressiva de Tempo.
-     *
-     * @param delayMinutes Minutos de atraso em relação ao bloco ou horário estipulado.
-     *                     Valores negativos indicam conclusão antecipada.
+     * Calcula o Presence Bonus determinístico por lookup de tempo real em segundos:
+     * - < 30s: 0.0
+     * - 30-59s: 0.1
+     * - 60-119s: 0.3
+     * - >= 120s: 0.5
      */
-    public double calculateAggressiveTimeCurveMultiplier(long delayMinutes) {
-        if (delayMinutes <= 0) {
-            // Conclusão antecipada ou pontual: bônus crescente de agilidade
-            long earlyMinutes = Math.abs(delayMinutes);
-            double bonus = 1.00 + Math.min(MAX_EARLY_BONUS_MULTIPLIER - 1.00, earlyMinutes * 0.02);
-            return Math.round(bonus * 100.0) / 100.0;
+    public double calculatePresenceBonus(long presenceSeconds) {
+        if (presenceSeconds < 30) {
+            return 0.0;
+        } else if (presenceSeconds < 60) {
+            return 0.1;
+        } else if (presenceSeconds < 120) {
+            return 0.3;
+        } else {
+            return 0.5;
         }
-
-        // Queda exponencial agressiva para combater a procrastinação (TDAH focus)
-        double decayed = Math.exp(-AGGRESSIVE_DECAY_RATE * delayMinutes);
-        double multiplier = Math.max(MIN_TIME_MULTIPLIER, decayed);
-        return Math.round(multiplier * 100.0) / 100.0;
     }
 
     /**
-     * Executa o pipeline de pontuação ADR-000 e distribui o resultado nas áreas associadas (100/60/30).
+     * Calcula o multiplicador de esforço (effort_level de 1 a 5):
+     * - 1: 1.0
+     * - 2: 1.2
+     * - 3: 1.5
+     * - 4: 2.0
+     * - 5: 2.8
+     */
+    public double calculateEffortMultiplier(int effortLevel) {
+        return switch (effortLevel) {
+            case 2 -> 1.2;
+            case 3 -> 1.5;
+            case 4 -> 2.0;
+            case 5 -> 2.8;
+            default -> 1.0;
+        };
+    }
+
+    /**
+     * Aplica a Curva Agressiva de Tempo canônica (por faixa de minutos de duração/foco):
+     * - < 5 min: x1.0
+     * - 5-15 min: x2.0
+     * - 16-30 min: x6.0
+     * - 31-60 min: x15.0
+     * - 61-90 min: x30.0
+     * - 91-120 min: x50.0
+     * - > 120 min: x80.0
+     */
+    public double calculateAggressiveTimeMultiplier(long durationMinutes) {
+        if (durationMinutes < 5) {
+            return 1.0;
+        } else if (durationMinutes <= 15) {
+            return 2.0;
+        } else if (durationMinutes <= 30) {
+            return 6.0;
+        } else if (durationMinutes <= 60) {
+            return 15.0;
+        } else if (durationMinutes <= 90) {
+            return 30.0;
+        } else if (durationMinutes <= 120) {
+            return 50.0;
+        } else {
+            return 80.0;
+        }
+    }
+
+    /**
+     * Calcula o multiplicador de exaustão:
+     * - 0.5 se prana <= 0 (Debuff de Exaustão Arcana)
+     * - 1.0 caso contrário
+     */
+    public double calculateExhaustionMultiplier(UserEntity user) {
+        if (user != null && user.getPranaLevel() <= 0) {
+            return 0.5;
+        }
+        return 1.0;
+    }
+
+    /**
+     * Executa o pipeline canônico exato de pontuação ADR-000:
+     * FinalScore = BaseValue * (1 + presence_bonus) * M_effort * M_time * M_astro * M_exhaustion
+     * E distribui o resultado nas áreas associadas (100% primária, 60% secundária, 30% terciária).
      *
-     * @param action        Ação que foi executada
-     * @param user          Mago executor
-     * @param delayMinutes  Minutos de atraso ou antecipação
-     * @param areaIdsInOrder Lista ordenada de IDs de áreas (Primária na pos 0, Secundária na pos 1, Terciária na pos 2)
+     * @param action          Ação/hábito executado
+     * @param user            Mago executor
+     * @param durationMinutes Minutos de foco/execução
+     * @param presenceSeconds Segundos de presença em tempo real
+     * @param effortLevel     Nível de esforço (1 a 5)
+     * @param areaIdsInOrder  Lista de áreas na ordem [primária, secundária, terciária]
      */
     public MultiAreaScoreDistribution calculateAndDistributeScore(ActionEntity action,
                                                                    UserEntity user,
-                                                                   long delayMinutes,
+                                                                   long durationMinutes,
+                                                                   long presenceSeconds,
+                                                                   int effortLevel,
                                                                    List<String> areaIdsInOrder) {
         BigDecimal baseValue = (action != null && action.getBaseValue() != null)
                 ? action.getBaseValue()
                 : BigDecimal.valueOf(10.00);
 
-        // 1. Curva Agressiva de Tempo
-        double timeMultiplier = calculateAggressiveTimeCurveMultiplier(delayMinutes);
+        // 1. Presence Bonus: (1 + presence_bonus)
+        double presenceBonus = calculatePresenceBonus(presenceSeconds);
+        double presenceFactor = 1.0 + presenceBonus;
 
-        // 2. Modificador Astrológico
+        // 2. Multiplicador de Esforço: effort_level 1..5
+        double effortMultiplier = calculateEffortMultiplier(effortLevel);
+
+        // 3. Curva de Tempo Agressiva
+        double timeMultiplier = calculateAggressiveTimeMultiplier(durationMinutes);
+
+        // 4. Modificador Astrológico do elemento da área primária
         String primaryElement = resolvePrimaryElement(action, areaIdsInOrder);
         BigDecimal astroMod = astroStateService.getElementModifier(primaryElement);
         double astroMultiplier = astroMod != null ? astroMod.doubleValue() : 1.00;
 
-        // 3. Multiplicador de Streak do Usuário
-        double streakMultiplier = (user != null && user.getXpMultiplier() != null)
-                ? user.getXpMultiplier().doubleValue()
-                : 1.00;
+        // 5. Multiplicador de Exaustão (0.5 se prana <= 0, senão 1.0)
+        double exhaustionMultiplier = calculateExhaustionMultiplier(user);
 
-        // 4. Modificador de Prana (Exaustão vs Flow State)
-        double pranaMultiplier = 1.00;
-        if (user != null) {
-            int prana = user.getPranaLevel();
-            if (prana <= 0) {
-                pranaMultiplier = 0.50; // Debuff de Exaustão Arcana: 50% de rendimento
-            } else if (prana >= 80) {
-                pranaMultiplier = 1.15; // Bônus de Alta Energia / Flow State: +15%
-            }
-        }
+        // 6. Pontuação Final Combinada (ADR-000)
+        double rawCombined = baseValue.doubleValue()
+                * presenceFactor
+                * effortMultiplier
+                * timeMultiplier
+                * astroMultiplier
+                * exhaustionMultiplier;
 
-        // 5. Pontuação Final Combinada (ADR-000)
-        double rawCombined = baseValue.doubleValue() * timeMultiplier * astroMultiplier * streakMultiplier * pranaMultiplier;
         BigDecimal finalScore = BigDecimal.valueOf(rawCombined).setScale(2, RoundingMode.HALF_UP);
 
-        // 6. Distribuição Multi-Área 100/60/30
+        // 7. Distribuição Multi-Área 100/60/30
         Map<String, BigDecimal> areaDistribution = new LinkedHashMap<>();
         Map<String, BigDecimal> elementDistribution = new LinkedHashMap<>();
 
@@ -135,19 +194,30 @@ public class ScoringEngineService {
             }
         }
 
-        log.info("🎯 [ScoringEngine ADR-000] Ação='{}' | Base={} | Tempo={:.2f}x | Astro={:.2f}x | Streak={:.2f}x | Prana={:.2f}x => Final={}",
-                action != null ? action.getTitle() : "Ação", baseValue, timeMultiplier, astroMultiplier, streakMultiplier, pranaMultiplier, finalScore);
+        log.info("🎯 [ScoringEngine ADR-000] Ação='{}' | Base={} | Presença=(1+{:.1f}) | Esforço={:.1f}x | Tempo={:.1f}x | Astro={:.2f}x | Exaustão={:.1f}x => Final={}",
+                action != null ? action.getTitle() : "Ação", baseValue, presenceBonus, effortMultiplier, timeMultiplier, astroMultiplier, exhaustionMultiplier, finalScore);
 
         return new MultiAreaScoreDistribution(
                 baseValue,
                 finalScore,
+                presenceBonus,
+                effortMultiplier,
                 timeMultiplier,
                 astroMultiplier,
-                streakMultiplier,
-                pranaMultiplier,
+                exhaustionMultiplier,
                 areaDistribution,
                 elementDistribution
         );
+    }
+
+    /**
+     * Sobrecarga de conveniência com valores padrão para presença (0s) e esforço (nível 1).
+     */
+    public MultiAreaScoreDistribution calculateAndDistributeScore(ActionEntity action,
+                                                                   UserEntity user,
+                                                                   long durationMinutes,
+                                                                   List<String> areaIdsInOrder) {
+        return calculateAndDistributeScore(action, user, durationMinutes, 0, 1, areaIdsInOrder);
     }
 
     private List<String> cleanAreaList(ActionEntity action, List<String> areaIdsInOrder) {
@@ -194,7 +264,6 @@ public class ScoringEngineService {
             }
         }
 
-        // Heurística baseada no ID da área
         String lowerId = areaId.toLowerCase();
         if (lowerId.contains("fogo") || lowerId.contains("fisic") || lowerId.contains("corpo") || lowerId.contains("sport")) return "fire";
         if (lowerId.contains("agua") || lowerId.contains("água") || lowerId.contains("emoc") || lowerId.contains("mind")) return "water";

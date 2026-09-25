@@ -36,41 +36,52 @@ class ScoringEngineServiceTest {
         scoringEngineService = new ScoringEngineService(astroStateService, areaRepository);
         user = new UserEntity("Mago", "mago@reino.com", "hash");
         user.setId(UUID.randomUUID());
-        user.setXpMultiplier(BigDecimal.valueOf(1.00));
         user.setPranaLevel(70);
     }
 
     @Test
-    @DisplayName("Curva Agressiva: pontual ou antecipado deve conceder bônus crescente")
-    void shouldAwardBonusForEarlyOrOnTimeCompletion() {
-        double onTime = scoringEngineService.calculateAggressiveTimeCurveMultiplier(0);
-        double early15Min = scoringEngineService.calculateAggressiveTimeCurveMultiplier(-15);
-        double early30Min = scoringEngineService.calculateAggressiveTimeCurveMultiplier(-30);
-
-        assertEquals(1.00, onTime);
-        assertTrue(early15Min > 1.00, "15 min antecipado deve ter bônus");
-        assertTrue(early30Min > early15Min, "30 min antecipado deve ser maior que 15 min");
+    @DisplayName("Presence Bonus: deve seguir os degraus determinísticos de tempo real (<30s, 30-59s, 60-119s, >=120s)")
+    void shouldCalculatePresenceBonusCorrectly() {
+        assertEquals(0.0, scoringEngineService.calculatePresenceBonus(10));
+        assertEquals(0.0, scoringEngineService.calculatePresenceBonus(29));
+        assertEquals(0.1, scoringEngineService.calculatePresenceBonus(30));
+        assertEquals(0.1, scoringEngineService.calculatePresenceBonus(59));
+        assertEquals(0.3, scoringEngineService.calculatePresenceBonus(60));
+        assertEquals(0.3, scoringEngineService.calculatePresenceBonus(119));
+        assertEquals(0.5, scoringEngineService.calculatePresenceBonus(120));
+        assertEquals(0.5, scoringEngineService.calculatePresenceBonus(300));
     }
 
     @Test
-    @DisplayName("Curva Agressiva: atraso deve sofrer queda exponencial e atingir o piso mínimo")
-    void shouldDecayAggressivelyWithDelay() {
-        double mult15Min = scoringEngineService.calculateAggressiveTimeCurveMultiplier(15);
-        double mult30Min = scoringEngineService.calculateAggressiveTimeCurveMultiplier(30);
-        double mult60Min = scoringEngineService.calculateAggressiveTimeCurveMultiplier(60);
-        double mult120Min = scoringEngineService.calculateAggressiveTimeCurveMultiplier(120);
-
-        assertTrue(mult15Min < 1.00);
-        assertTrue(mult30Min < mult15Min);
-        assertTrue(mult60Min < mult30Min);
-        assertEquals(0.15, mult120Min, 0.01, "Atraso longo deve respeitar o piso mínimo de 0.15");
+    @DisplayName("Effort Multiplier: deve seguir os níveis de 1 a 5 (1.0, 1.2, 1.5, 2.0, 2.8)")
+    void shouldCalculateEffortMultiplierCorrectly() {
+        assertEquals(1.0, scoringEngineService.calculateEffortMultiplier(1));
+        assertEquals(1.2, scoringEngineService.calculateEffortMultiplier(2));
+        assertEquals(1.5, scoringEngineService.calculateEffortMultiplier(3));
+        assertEquals(2.0, scoringEngineService.calculateEffortMultiplier(4));
+        assertEquals(2.8, scoringEngineService.calculateEffortMultiplier(5));
+        assertEquals(1.0, scoringEngineService.calculateEffortMultiplier(0)); // fallback
     }
 
     @Test
-    @DisplayName("ADR-000: Deve distribuir pontuação entre áreas na proporção canônica 100/60/30")
-    void shouldDistributeMultiAreaScores100_60_30() {
-        ActionEntity action = new ActionEntity("act-1", "Sessão de Estudos e Treino", BigDecimal.valueOf(100.00));
-        when(astroStateService.getElementModifier(anyString())).thenReturn(BigDecimal.valueOf(1.00));
+    @DisplayName("Curva Agressiva de Tempo: deve aplicar os multiplicadores canônicos por faixa de minutos")
+    void shouldApplyAggressiveTimeCurveCorrectly() {
+        assertEquals(1.0, scoringEngineService.calculateAggressiveTimeMultiplier(4));   // < 5min
+        assertEquals(2.0, scoringEngineService.calculateAggressiveTimeMultiplier(5));   // 5-15min
+        assertEquals(2.0, scoringEngineService.calculateAggressiveTimeMultiplier(15));  // 5-15min
+        assertEquals(6.0, scoringEngineService.calculateAggressiveTimeMultiplier(25));  // 16-30min
+        assertEquals(15.0, scoringEngineService.calculateAggressiveTimeMultiplier(45)); // 31-60min
+        assertEquals(30.0, scoringEngineService.calculateAggressiveTimeMultiplier(75)); // 61-90min
+        assertEquals(50.0, scoringEngineService.calculateAggressiveTimeMultiplier(100));// 91-120min
+        assertEquals(80.0, scoringEngineService.calculateAggressiveTimeMultiplier(130));// > 120min
+    }
+
+    @Test
+    @DisplayName("Pipeline Canônico ADR-000: calcula pontuação completa e divide 100/60/30 sem multiplicador de streak")
+    void shouldCalculateFullPipelineAndDistribute100_60_30() {
+        // Base = 10.00
+        ActionEntity action = new ActionEntity("act-1", "Sessão Focada de Estudo", BigDecimal.valueOf(10.00));
+        when(astroStateService.getElementModifier("air")).thenReturn(BigDecimal.valueOf(1.00));
 
         AreaEntity area1 = new AreaEntity("area-mente", "Mente Arcana", "body-air", "#3B82F6", true);
         AreaEntity area2 = new AreaEntity("area-corpo", "Templo do Corpo", "body-fire", "#EF4444", false);
@@ -82,47 +93,64 @@ class ScoringEngineServiceTest {
 
         List<String> areas = List.of("area-mente", "area-corpo", "area-espirito");
 
-        // Execução pontual (delay = 0 -> timeMultiplier = 1.00)
-        var result = scoringEngineService.calculateAndDistributeScore(action, user, 0, areas);
+        // Parametros:
+        // durationMinutes = 20 (faixa 16-30min -> M_time = 6.0)
+        // presenceSeconds = 45 (faixa 30-59s -> presence_bonus = 0.1 -> factor = 1.1)
+        // effortLevel = 3 (M_effort = 1.5)
+        // astro = 1.0, exhaustion = 1.0 (prana = 70)
+        // Esperado: 10.00 * 1.1 * 1.5 * 6.0 * 1.0 * 1.0 = 99.00
+        var result = scoringEngineService.calculateAndDistributeScore(action, user, 20, 45, 3, areas);
 
-        assertEquals(BigDecimal.valueOf(100.00).setScale(2), result.finalScore());
+        assertEquals(BigDecimal.valueOf(99.00).setScale(2), result.finalScore());
+        assertEquals(0.1, result.presenceBonus());
+        assertEquals(1.5, result.effortMultiplier());
+        assertEquals(6.0, result.timeMultiplier());
+        assertEquals(1.0, result.astroMultiplier());
+        assertEquals(1.0, result.exhaustionMultiplier());
 
-        // 100% para primária, 60% para secundária, 30% para terciária
-        assertEquals(BigDecimal.valueOf(100.00).setScale(2), result.areaDistribution().get("area-mente"));
-        assertEquals(BigDecimal.valueOf(60.00).setScale(2), result.areaDistribution().get("area-corpo"));
-        assertEquals(BigDecimal.valueOf(30.00).setScale(2), result.areaDistribution().get("area-espirito"));
+        // Distribuição Multi-Área 100/60/30:
+        // Primária: 99.00 * 1.00 = 99.00
+        // Secundária: 99.00 * 0.60 = 59.40
+        // Terciária: 99.00 * 0.30 = 29.70
+        assertEquals(BigDecimal.valueOf(99.00).setScale(2), result.areaDistribution().get("area-mente"));
+        assertEquals(BigDecimal.valueOf(59.40).setScale(2), result.areaDistribution().get("area-corpo"));
+        assertEquals(BigDecimal.valueOf(29.70).setScale(2), result.areaDistribution().get("area-espirito"));
 
-        // Elementos correspondentes também recebem a pontuação
-        assertEquals(BigDecimal.valueOf(100.00).setScale(2), result.elementDistribution().get("air"));
-        assertEquals(BigDecimal.valueOf(60.00).setScale(2), result.elementDistribution().get("fire"));
-        assertEquals(BigDecimal.valueOf(30.00).setScale(2), result.elementDistribution().get("water"));
+        assertEquals(BigDecimal.valueOf(99.00).setScale(2), result.elementDistribution().get("air"));
+        assertEquals(BigDecimal.valueOf(59.40).setScale(2), result.elementDistribution().get("fire"));
+        assertEquals(BigDecimal.valueOf(29.70).setScale(2), result.elementDistribution().get("water"));
     }
 
     @Test
-    @DisplayName("ADR-000: Deve aplicar debuff de exaustão quando o Mago estiver com Prana zerado")
-    void shouldApplyExhaustionDebuffWhenPranaZero() {
-        user.setPranaLevel(0); // Exaustão!
-        ActionEntity action = new ActionEntity("act-2", "Trabalho Sob Pressão", BigDecimal.valueOf(100.00));
+    @DisplayName("Exhaustion: deve aplicar multiplicador de 0.5 quando prana <= 0")
+    void shouldApplyExhaustionMultiplierWhenPranaZeroOrNegative() {
+        user.setPranaLevel(0); // Exaustão Arcana
+        ActionEntity action = new ActionEntity("act-2", "Ritual Exaustivo", BigDecimal.valueOf(10.00));
         when(astroStateService.getElementModifier(anyString())).thenReturn(BigDecimal.valueOf(1.00));
 
-        var result = scoringEngineService.calculateAndDistributeScore(action, user, 0, List.of("area-sem-categoria"));
+        // duration = 4min (<5min -> x1.0), presence = 10s (bonus 0 -> factor 1.0), effort = 1 (x1.0)
+        // 10.00 * 1.0 * 1.0 * 1.0 * 1.0 * 0.5 (exhaustion) = 5.00
+        var result = scoringEngineService.calculateAndDistributeScore(action, user, 4, 10, 1, List.of("area-sem-categoria"));
 
-        // Base 100 * 1.00 (tempo) * 1.00 (astro) * 1.00 (streak) * 0.50 (debuff exaustão) = 50.00
-        assertEquals(BigDecimal.valueOf(50.00).setScale(2), result.finalScore());
-        assertEquals(0.50, result.pranaMultiplier());
+        assertEquals(BigDecimal.valueOf(5.00).setScale(2), result.finalScore());
+        assertEquals(0.5, result.exhaustionMultiplier());
     }
 
     @Test
-    @DisplayName("ADR-000: Deve aplicar bônus de Flow State quando o Mago estiver com Prana >= 80")
-    void shouldApplyFlowStateBonusWhenPranaHigh() {
-        user.setPranaLevel(95); // Flow State!
-        ActionEntity action = new ActionEntity("act-3", "Fluxo Perfeito", BigDecimal.valueOf(100.00));
-        when(astroStateService.getElementModifier(anyString())).thenReturn(BigDecimal.valueOf(1.00));
+    @DisplayName("Astro Modifier: deve aplicar modificador astrológico do elemento da área primária")
+    void shouldApplyAstroModifierForPrimaryArea() {
+        user.setPranaLevel(100);
+        ActionEntity action = new ActionEntity("act-3", "Treino de Fogo", BigDecimal.valueOf(10.00));
+        AreaEntity fireArea = new AreaEntity("area-fogo", "Fogo Vivo", "body-fire", "#EF4444", true);
 
-        var result = scoringEngineService.calculateAndDistributeScore(action, user, 0, List.of("area-sem-categoria"));
+        when(areaRepository.findById("area-fogo")).thenReturn(Optional.of(fireArea));
+        // Lua em Fogo potencializa elemento fogo para 1.25x
+        when(astroStateService.getElementModifier("fire")).thenReturn(BigDecimal.valueOf(1.25));
 
-        // Base 100 * 1.15 (flow state) = 115.00
-        assertEquals(BigDecimal.valueOf(115.00).setScale(2), result.finalScore());
-        assertEquals(1.15, result.pranaMultiplier());
+        // Base 10 * factor 1.0 * effort 1.0 * time 1.0 * astro 1.25 * exhaustion 1.0 = 12.50
+        var result = scoringEngineService.calculateAndDistributeScore(action, user, 4, 10, 1, List.of("area-fogo"));
+
+        assertEquals(BigDecimal.valueOf(12.50).setScale(2), result.finalScore());
+        assertEquals(1.25, result.astroMultiplier());
     }
 }
