@@ -1,211 +1,198 @@
-```markdown
-# 🔮 DOMÍNIO DO MAGO — ARCHITECTURAL MANIFESTO & PWA RUNTIME
-
 <div align="center">
 
-![Project Status](https://img.shields.io/badge/System_Status-BETA_1.0-8B5CF6?style=for-the-badge&logo=statuspage&logoColor=white)
-![Frontend Runtime](https://img.shields.io/badge/Frontend-Next.js_14_SSR%2FCSR-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![UI Architecture](https://img.shields.io/badge/Styling-Tailwind_Glassmorphism-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Core Engine](https://img.shields.io/badge/Backend-Spring_Boot_3.x-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
-![Language Runtime](https://img.shields.io/badge/Runtime-Java_21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![State Persistence](https://img.shields.io/badge/Persistence-PostgreSQL_16_|_Redis-336791?style=for-the-badge&logo=postgresql&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+# 🧙‍♂️ DOMÍNIO DO MAGO
+### Sistema PWA Mobile-First de Gestão Cognitiva, Produtividade Arcana e Orquestração por IA
 
-<p align="center">
-  <strong>Uma Progressive Web App (PWA) de Alto Rendimento com Paradigma Mobile-First, Arquitetura Desacoplada e Gamificação Comportamental Imersiva através de Vidro Translúcido Adaptativo (Liquid Glassmorphism).</strong>
-</p>
+[![Next.js](https://img.shields.io/badge/Next.js-14.x_(App_Router)-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4_Liquid_Glass-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x_LTS-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/)
+[![Java](https://img.shields.io/badge/Java-21_Virtual_Threads-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://oracle.com/java/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_ACID-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7.x_Telemetry-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
 
-[Arquitetura](#-arquitetura-do-sistema--fluxo-de-dados) • [Pilares de Engenharia](#-pilares-de-engenharia-de-software) • [UI/UX Spec](#-especificação-técnica-de-uiux-mobile-first) • [Stack Tecnológica](#-matriz-tecnológica) • [Setup & Deploy](#-ambiente-de-desenvolvimento--deploy)
+<br/>
 
----
+**Domínio do Mago** é uma plataforma distribuída e progressiva (PWA) projetada sob a ótica de *Behavioral Game Design* e *Cognitive Ergonomics*. Substitui a fricção de organizadores tradicionais por uma esteira imersiva de micro-hábitos e alocação de blocos temporais (Time-Blocking) governada por um Orquestrador Conversacional e arquitetura reativa full-stack.
 
 </div>
 
-## 🌌 Visão Geral Executiva
-
-O **Domínio do Mago** é uma plataforma de engenharia de software desenhada para resolver a fadiga cognitiva e o atrito na gestão de produtividade moderna. Abandonando o modelo tradicional de listas de tarefas lineares (*To-Do Lists*), o ecossistema funde conceitos de neurociência comportamental e teorias de *game design* (sistemas RPG de progressão elemental) numa aplicação web progressiva de baixa latência e persistência híbrida.
-
-A aplicação foi concebida sob uma filosofia rigorosa de **Navegação Móvel Nativa (Native Parity)**: zero dependência de controlos de browsers convencionais, gestão precisa de áreas de segurança (*Safe Areas* no iOS/Android), taxa de refrescamento sustentada a 60 FPS com aceleração de hardware e renderização de layouts elásticos baseados no viewport dinâmico (`100dvh`).
-
 ---
 
-## 🏛️ Arquitetura do Sistema & Fluxo de Dados
+## 🏛️ Topologia & Arquitetura do Ecossistema
 
-A infraestrutura adota o padrão de desacoplamento rigoroso entre a camada de apresentação cliente (Edge PWA) e o motor de orquestração analítica transacional de retaguarda (*Stateless Core API*).
+O sistema opera com separação estrita de domínios entre a camada de borda cliente (*Client Edge PWA*) e o núcleo de persistência/telemetria transacional (*Core Backend API*).
 
 
 ```
 
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                               CLIENT EDGE (PWA)                                  │
-│                                                                                  │
-│   ┌──────────────────────────────────────────────────────────────────────────┐   │
-│   │                         Next.js App Router (Client)                      │   │
-│   │                                                                          │   │
-│   │  [Dynamic Island HUD]    [Orquestrador Arcano]    [Quadro Temporal]      │   │
-│   │  • Micro-Métricas        • Conversational UI      • Time Blocking        │   │
-│   │  • Safe Area Inset       • Flex Column (100dvh)   • Gestão de Rituais    │   │
-│   └────────────────────────────────────┬─────────────────────────────────────┘   │
-│                                        │ Reactive Cache / Optimistic UI          │
-│   ┌────────────────────────────────────▼─────────────────────────────────────┐   │
-│   │               Service Worker Engine & Storage Offline                    │   │
-│   │         (Cache API • Web Storage • Sincronização Desacoplada)            │   │
-│   └────────────────────────────────────┬─────────────────────────────────────┘   │
-└────────────────────────────────────────┼─────────────────────────────────────────┘
-│
-│ HTTPS / mTLS / Assinatura JWT
-▼
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                             BACKEND ENGINE (REST API)                            │
-│                                                                                  │
-│   ┌──────────────────────────────────────────────────────────────────────────┐   │
-│   │                        Spring Boot 3.x Ecosystem                         │   │
-│   │                                                                          │   │
-│   │  [Security Filter Chain] ──> [Domain Services] ──> [Game Telemetry]      │   │
-│   │  • Stateless Bearer Auth    • Regras de Negócio   • Curvas de XP & Prana │   │
-│   │  • CORS & Rate Limiting     • Orquestração IA     • Algoritmo de Ranking │   │
-│   └────────────────────────────────────┬─────────────────────────────────────┘   │
-│                                        │                                         │
-│                    ┌───────────────────┴───────────────────┐                     │
-│                    ▼                                       ▼                     │
-│         ┌──────────────────────┐               ┌───────────────────────┐         │
-│         │   PostgreSQL 16 DB   │               │   Redis Cache Node    │         │
-│         │  (ACID / Relacional) │               │  (Sessões & Leaderboard)│        │
-│         └──────────────────────┘               └───────────────────────┘         │
-└──────────────────────────────────────────────────────────────────────────────────┘
+```
+                  ┌──────────────────────────────────────┐
+                  │        CLIENT EDGE (PWA / UX)        │
+                  └──────────────────┬───────────────────┘
+                                     │
+             ┌───────────────────────┴───────────────────────┐
+             ▼                                               ▼
+┌──────────────────────────┐                    ┌──────────────────────────┐
+│     Next.js Runtime      │                    │     Client Storage       │
+│  • App Router (SSR/CSR)  │                    │  • Web Workers & PWA     │
+│  • Glassmorphism Tokens  │                    │  • Offline-First Cache   │
+│  • Viewport 100dvh Lock  │                    │  • Optimistic UI Engine  │
+└────────────┬─────────────┘                    └────────────┬─────────────┘
+             │                                               │
+             └───────────────────────┬───────────────────────┘
+                                     │
+                                     │ HTTPS / Bearer JWT (mTLS Ready)
+                                     ▼
+                  ┌──────────────────────────────────────┐
+                  │       CORE ENGINE (SPRING BOOT)      │
+                  │  • Java 21 (Virtual Threads / Loom)  │
+                  │  • Stateless Security Filter Chain   │
+                  │  • ADR-000 Contract Engine (Prana)   │
+                  └──────────────────┬───────────────────┘
+                                     │
+             ┌───────────────────────┴───────────────────────┐
+             ▼                                               ▼
+┌──────────────────────────┐                    ┌──────────────────────────┐
+│     PostgreSQL 16 DB     │                    │     Redis Cache Node     │
+│  • Transações ACID       │                    │  • Telemetria & Ranks    │
+│  • Histórico de Rituais  │                    │  • Rate Limiting & Lock  │
+│  • Ledgers de XP e Nível │                    │  • Ephemeral Chat Cache  │
+└──────────────────────────┘                    └──────────────────────────┘
+
+```
 
 ```
 
 ---
 
-## 🛠️ Pilares de Engenharia de Software
+## ⚡ Pilares de Engenharia & Decisões Arquiteturais
 
-### 1. Liquid Glassmorphism & Micro-Design System
-A interface implementa o padrão de *vidro fosco adaptativo*, evitando painéis opacos agressivos no Modo Claro (*Light Mode*) e pretos puros no Modo Escuro (*Dark Mode*):
-* **Fórmula de Dispersão de Camada:** Injeção combinada de `backdrop-blur-xl` / `backdrop-blur-2xl` com valores de canal alfa calculados (`bg-white/60` a `bg-white/80` no tema claro e `bg-[#0B0B10]/80` no escuro).
-* **Contraste de Acessibilidade:** Conformidade rigorosa com normas WCAG AAA em estados focados e desfocados, com isolamento de cores de acento para os quatro caminhos arcanos:
-  * 🔴 **Fogo:** Ação, arranque de cronómetros e conclusão de tarefas de alto desgaste.
-  * 🔵 **Água:** Fluxo contínuo, rituais regenerativos e restauro de Prana.
-  * 🟢 **Terra:** Fundações técnicas, estudo de arquitetura e consistência a longo prazo.
-  * ⚪ **Ar:** Orquestração IA, síntese cognitiva e processamento de ideias.
+### 1. Liquid Glassmorphism & Runtime Visual Adaptativo
+Diferente de interfaces web convencionais que aplicam opacidades genéricas, o motor visual do Domínio do Mago implementa um pipeline CSS dinâmico que preserva a profundidade de campo:
+* **Fórmula de Refração:** Combinação de tokens `backdrop-blur-xl` e `backdrop-blur-2xl` com valores de alfa calibrados individualmente para cada modo (`bg-white/60` a `bg-white/80` no Modo Claro para evitar contraste estourado; `bg-[#0B0B10]/80` a `bg-[#0D0D18]/95` no Modo Escuro).
+* **Isolamento de Canais Elementais:**
+  * 🔴 **Fogo (Fire):** Transição de foco, execução imediata e gasto de energia.
+  * 🔵 **Água (Water):** Fluxo regenerativo, rituais restauradores de Prana e pausas táticas.
+  * 🟢 **Terra (Earth):** Arquitetura mental, consistência de longo prazo e missões duráveis.
+  * ⚪ **Ar (Air):** Orquestração analítica, processamento do chat e refinamento estratégico.
 
-### 2. Viewport Trapping & Estabilidade de Layout (Zero Cumulative Layout Shift)
-Para emular o comportamento de código nativo (Swift/Kotlin) dentro do browser:
-* **Prevenção de Saltos de Scroll:** Toda a aplicação vive dentro de um invólucro estrito sem transbordo global (`overflow-hidden`), delegando o scroll exclusivamente para áreas dedicadas via `flex-1 overflow-y-auto`.
-* **Dimensionamento `100dvh`:** Subtração dinâmica das margens de navegação de sistemas móveis (Dynamic Island do iPhone, barra de navegação do Android), mitigando os bugs históricos de ecrãs cortados.
-* **Ergonomia Tátil:** Todos os elementos interativos possuem uma área mínima de clique de **44x44px**, estruturados numa barra de navegação inferior flutuante (*Dock Navigation*) com 5 nós equidistantes (`grid-cols-5`).
+### 2. Viewport Trapping & Estabilidade Mobile (Zero CLS)
+Para equiparar o PWA ao comportamento nativo de aplicações iOS/Android:
+* **Prevenção de Bounce de Janela:** A raiz da aplicação restringe o overflow global (`overflow-hidden`), transferindo o scroll exclusivamente para áreas delimitadas (`flex-1 overflow-y-auto`).
+* **Estrutura `100dvh` Dinâmica:** O container do chat e o fluxo principal calculam o tamanho líquido descartando o espaço ocupado pelo Compact HUD superior e pelo Dock de navegação (`h-[calc(100dvh-180px)]` / layout elástico).
+* **Safe-Area Insets:** Aplicação sistemática de `env(safe-area-inset-bottom)` e `env(safe-area-inset-top)` nos componentes móveis, blindando elementos contra a barra de gestos e Dynamic Island.
 
-### 3. Orquestrador Conversacional Reativo
-A aba do Orquestrador IA foi desenhada com uma pilha Flexbox pura:
-* **Input Estático:** Fixação natural na base da árvore DOM (`shrink-0`), eliminando o uso de posicionamento absoluto (`absolute bottom-0`) que quebrava com a subida do teclado virtual mobile.
-* **Stream de Mensagens:** Auto-scroll suavizado com proteção por debounce e âncora invisível (`messagesEndRef`).
+### 3. Orquestrador Conversacional Flexbox Puro
+A interface do chat foi refatorada para erradicar falhas comumente introduzidas por posicionamento absoluto (`absolute bottom-0`):
+* **Input com Fixação Estrutural:** O rodapé de escrita opera como elemento `shrink-0` no encerramento da coluna flexível, garantindo fluidez e compatibilidade com teclados móveis virtuais.
+* **Auto-Scroll com Debounce de Renderização:** O `scrollIntoView` é acionado por um gatilho temporizado (150ms) via ref, assegurando que o nó DOM foi reconciliado antes do deslocamento suave da rolagem.
 
 ---
 
-## 📊 Matriz Tecnológica
+## 📊 Matriz de Tecnologias
 
-| Camada | Tecnologia | Propósito & Justificação Arquitetural |
+| Camada | Tecnologia | Decisão Arquitetural |
 | :--- | :--- | :--- |
-| **Frontend Framework** | **Next.js 14 (React 18)** | Renderização híbrida (SSR para casca estrutural, CSR para estados reativos), otimização automática de fontes e assets. |
-| **Linguagem Frontend** | **TypeScript 5.x** | Tipagem estática rigorosa (`strict: true`), prevenindo erros de execução e referências indefinidas no cliente. |
-| **Estilização** | **Tailwind CSS 3.4** | Utility-first compilation com tokens customizados (`design-tokens.ts`) para suporte nativo a variantes de tema. |
-| **Motor de Animação** | **Framer Motion** | Interpolação baseada em física (springs) para alternância suave de abas e botões flutuantes via GPU. |
-| **Iconografia** | **Lucide React** | Conjunto leve de ícones SVG vetorizados, reduzindo o payload inicial do bundle. |
-| **Backend Core** | **Spring Boot 3.x** | Microframework enterprise com injeção de dependência resiliente, contratos REST estritos e suporte a Virtual Threads. |
-| **Linguagem Backend** | **Java 21 (LTS)** | Uso de *Records*, *Pattern Matching* e otimizações de compilação da JVM moderna. |
-| **Persistência Relacional** | **PostgreSQL 16** | Tabelas normalizadas, integridade referencial para rituais e histórico de XP. |
-| **Cache & Leaderboard** | **Redis** | Sorted sets para cálculo instantâneo do ranking global/local de utilizadores. |
-| **Contentorização** | **Docker Compose** | Paridade completa entre os ambientes de desenvolvimento, teste e produção. |
+| **Frontend Framework** | Next.js 14 (App Router) | Renderização híbrida inteligente (SSR para carcaça estática, CSR para nós de reatividade e estado). |
+| **Linguagem Frontend** | TypeScript 5.x | Tipagem estrita (`strict: true`) em todos os contextos, contratos DTO e handlers de UI. |
+| **Estilização** | Tailwind CSS 3.4 | Tokens modulares (`design-tokens.ts`) com injeção de classes utilitárias de baixa pegada e zero overhead de runtime. |
+| **Motor de Animação** | Framer Motion | Interpolações físicas baseadas em spring para transição de abas e montagem do chat sem repaint desnecessário. |
+| **Backend Core** | Spring Boot 3.x | Injeção de dependências corporativa, controllers REST de alto throughput e segurança com filtros JWT. |
+| **Linguagem Backend** | Java 21 LTS | Registros imutáveis (*Records*), *Pattern Matching* e suporte nativo a execuções concorrentes via Virtual Threads. |
+| **Banco Relacional** | PostgreSQL 16 | Tabelas normalizadas, integridade referencial para inventário, hábitos e cálculo de XP. |
+| **Camada de Cache** | Redis 7.x | Sorted sets para cálculo distribuído do Ranking em O(log(N)) e cache temporário de telemetria. |
+| **Containerização** | Docker & Compose | Orquestração local determinística garantindo paridade total entre dev e staging. |
 
 ---
 
-## 🧭 Estrutura do Repositório
+## 🗂️ Estrutura do Projeto
 
 ```text
 dominio-do-mago/
-├── frontend/                       # Camada de Apresentação (Next.js PWA)
-│   ├── components/                 # Componentes Atómicos e Moleculares
-│   │   ├── orchestrator/           # Módulos do Chat e Orquestrador IA
-│   │   ├── 3d/                     # Visualizadores e Assets Tridimensionais
-│   │   ├── MagoDashboard.tsx       # Core Shell da Aplicação
-│   │   └── MobileBottomNav.tsx     # Barra de Navegação Dock Mobile (5 Abas)
-│   ├── contexts/                   # Provedores de Estado Global (Theme, Nav)
-│   ├── lib/                        # Design Tokens e Utilitários de CSS
-│   └── public/                     # Service Workers, Manifest e PWA Assets
-├── src/main/java/                  # Motor de Negócio (Spring Boot Backend)
-│   ├── controller/                 # Endpoints REST e Validação de DTOs
-│   ├── service/                    # Lógica de Gamificação, XP e Rituais
-│   ├── repository/                 # Camada de Acesso a Dados (Spring Data JPA)
-│   └── model/                      # Entidades de Domínio
-├── docker-compose.yml              # Orquestração local dos contentores (DB + Cache)
-├── LICENSE                         # Licença MIT
-└── README.md                       # Documentação de Engenharia
+├── frontend/                         # Interface PWA (Next.js 14)
+│   ├── app/                          # App Router e Layouts Globais
+│   ├── components/                   # Arquitetura de Componentes
+│   │   ├── orchestrator/             # Orquestrador Arcano & Sub-componentes de Chat
+│   │   │   ├── OrchestratorChat.tsx  # Wrapper de integração
+│   │   │   └── OrchestratorChatView.tsx # Shell Flexbox nativo do chat
+│   │   ├── MagoDashboard.tsx         # Dashboard Executivo e Dynamic Island HUD
+│   │   ├── MobileBottomNav.tsx       # Dock de 5 Nós Equidistantes (grid-cols-5)
+│   │   ├── TemporalBoard.tsx         # Quadro Temporal & Time-Blocking
+│   │   └── ThemeToggle.tsx           # Alternador de modo (Liquid Light / Cyber Dark)
+│   ├── contexts/                     # Estado Compartilhado (NavigationContext, AuthContext)
+│   ├── lib/                          # Tokens Visuais (design-tokens.ts) e Utilitários
+│   └── public/                       # Assets estáticos, PWA Manifest e Service Workers
+├── src/main/java/                    # Core Backend (Spring Boot 3)
+│   ├── controller/                   # Endpoints REST e Validação
+│   ├── service/                      # Gamificação, Prana, XP e Lógica de Negócio
+│   ├── repository/                   # Contratos de Persistência (Spring Data JPA)
+│   └── model/                        # Entidades Relacionais
+├── docker-compose.yml                # Infraestrutura Local (Postgres + Redis)
+├── start_always_online.sh            # Daemon local de inicialização orquestrada
+├── LICENSE                           # Licença MIT
+└── README.md                         # Documentação Técnica de Engenharia
 
 ```
 
 ---
 
-## ⚡ Ambiente de Desenvolvimento & Deploy
+## 🚀 Inicialização Local & Orquestração
 
 ### Pré-requisitos
 
-* **Node.js:** v20.x ou superior
-* **Java SDK:** 21 LTS
-* **Docker Engine & Docker Compose:** Ativos
+* **Node.js:** `>= 20.x`
+* **Java SDK:** `21 LTS`
+* **Docker & Docker Compose:** Ativos
 * **Gerenciador de Pacotes:** `pnpm` ou `npm`
 
-### 1. Inicialização dos Serviços de Infraestrutura
+### 1. Subindo a Infraestrutura
 
 ```bash
-# Na raiz do projeto, suba as instâncias de base de dados e cache
+# Na raiz do repositório, inicialize PostgreSQL e Redis
 docker-compose up -d postgres redis
 
 ```
 
-### 2. Execução do Backend (Spring Boot)
+### 2. Inicializando o Backend (Spring Boot)
 
 ```bash
-# Executa a API com o perfil de desenvolvimento ativo
+# Executa a API com perfil de desenvolvimento
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
 ```
 
-*API acessível em: `http://localhost:8080/api/v1*`
+*API disponível em:* `http://localhost:8080/api/v1`
 
-### 3. Execução da Camada Cliente (Frontend PWA)
+### 3. Inicializando o Frontend (Next.js PWA)
 
 ```bash
 cd frontend
 
-# Instalação das dependências do ecossistema
+# Instale os pacotes
 pnpm install
 
-# Inicialização do servidor de desenvolvimento Next.js
+# Execute o ambiente de desenvolvimento
 pnpm dev
 
 ```
 
-*Aplicação acessível em: `http://localhost:3000*`
+*Aplicação acessível em:* `http://localhost:3000`
 
 ---
 
-## 🔖 Estratégia de Versionamento
+## 🏷️ Versionamento Semântico (SemVer)
 
-O projeto adota estritamente o modelo de **Versionamento Semântico (SemVer)** acompanhado por tags atómicas no Git:
+O projeto segue estritamente o versionamento via Git Tags atômicas:
 
-* `v0.1.0-alpha`: Prova de conceito e fundação da base de dados relacional.
-* `v1.0.0-beta`: Estabilização da arquitetura de UI/UX, resolução do modelo Flexbox e PWA mobile operacional *(Versão Atual)*.
-* `v1.1.0`: Integração do Quadro Temporal Dinâmico e telemetria analítica com Recharts.
-* `v2.0.0`: Lançamento da sincronização em tempo real e agentes inteligentes autônomos.
+* `v0.1.0-alpha`: Modelagem das entidades relacionais e infraestrutura Docker.
+* `v1.0.0-beta`: Reestruturação do ecossistema de UI/UX, estabilização Flexbox e Dock de 5 abas *(Versão Atual)*.
+* `v1.1.0`: Integração do Quadro Temporal Dinâmico e sincronização bidirecional de hábitos.
+* `v2.0.0`: Conexão em tempo real do Orquestrador a modelos de inteligência autônoma.
 
 ---
 
-## 📄 Licença & Padrões de Código
+## 📜 Licença & Conformidade
 
-Distribuído sob a licença **MIT**. Consulte o ficheiro [LICENSE](https://www.google.com/search?q=./LICENSE) para mais detalhes.
-
-Desenvolvido segundo as diretrizes de código limpo, separação de responsabilidades (SoC), testes automatizados de regressão e obsessão pelo detalhe na experiência do utilizador móvel.
-
-```
-
-```
+Distribuído sob a **Licença MIT**. Consulte o arquivo [LICENSE](https://www.google.com/search?q=./LICENSE) para termos integrais.
