@@ -150,7 +150,8 @@ export default function AvatarForge({ isOpen, onClose, onAvatarForged }: AvatarF
           <button 
             onClick={onClose}
             disabled={isForging}
-            className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors disabled:opacity-50"
+            aria-label="Fechar Forja"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

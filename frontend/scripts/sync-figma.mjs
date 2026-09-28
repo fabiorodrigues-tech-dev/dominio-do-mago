@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FIGMA_API_KEY = "figd_IdBUECKGzG0xTF17FhS68cHGJdz4l5WvND0EyI7M";
-const FILE_KEY = "9pRXE02F8BHR8FBZMIXp5b";
+const FIGMA_API_KEY = process.env.FIGMA_API_KEY || "";
+const FILE_KEY = process.env.FIGMA_FILE_KEY || "9pRXE02F8BHR8FBZMIXp5b";
 
 async function fetchFigma(endpoint) {
   const url = `https://api.figma.com/v1/files/${FILE_KEY}${endpoint}`;

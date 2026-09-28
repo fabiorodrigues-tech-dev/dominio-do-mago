@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type NavigationTab = 'grimorio' | 'chat' | 'missoes' | 'conhecimento' | 'perfil';
+export type NavigationTab = 'grimorio' | 'chat' | 'missoes' | 'conhecimento' | 'perfil' | 'relatorios';
 
 interface NavigationContextType {
   activeTab: NavigationTab;

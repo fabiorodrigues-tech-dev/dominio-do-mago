@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import { AuthProvider } from "../contexts/AuthContext";
 import { NavigationProvider } from "../contexts/NavigationContext";
+import { RitualTimerProvider } from "@/hooks/useRitualTimer";
 import AppShell from "../components/AppShell";
 
 const inter = Inter({
@@ -45,9 +46,11 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
             <NavigationProvider>
-              <AppShell>
-                {children}
-              </AppShell>
+              <RitualTimerProvider>
+                <AppShell>
+                  {children}
+                </AppShell>
+              </RitualTimerProvider>
             </NavigationProvider>
           </AuthProvider>
         </ThemeProvider>

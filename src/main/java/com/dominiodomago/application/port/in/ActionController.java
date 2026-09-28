@@ -51,7 +51,19 @@ public class ActionController {
             String taskEnergyType,
             BigDecimal baseValue,
             Boolean recurrenceEnabled,
-            String recurrenceType
+            String recurrenceType,
+            String lifecycleType
+    ) {}
+
+    public record UpdateActionDto(
+            String title,
+            String description,
+            String areaId,
+            String taskEnergyType,
+            BigDecimal baseValue,
+            Boolean recurrenceEnabled,
+            String recurrenceType,
+            String lifecycleType
     ) {}
 
     public record CompleteActionDto(
@@ -90,7 +102,14 @@ public class ActionController {
             actions = seedDefaultActions(user.getId());
         }
 
-        return ResponseEntity.ok(actions);
+        // Filtra estritamente itens da Lista Diária com lifecycle_type IN ('ACTION', 'HABIT')
+        List<ActionEntity> filtered = actions.stream()
+                .filter(a -> a.getLifecycleType() == null
+                        || "ACTION".equalsIgnoreCase(a.getLifecycleType())
+                        || "HABIT".equalsIgnoreCase(a.getLifecycleType()))
+                .toList();
+
+        return ResponseEntity.ok(filtered);
     }
 
     @PostMapping
@@ -120,10 +139,78 @@ public class ActionController {
         action.setTaskEnergyType(energyType);
         action.setRecurrenceEnabled(Boolean.TRUE.equals(dto.recurrenceEnabled()));
         action.setRecurrenceType(dto.recurrenceType() != null ? dto.recurrenceType() : (Boolean.TRUE.equals(dto.recurrenceEnabled()) ? "DAILY" : null));
+        
+        String lifecycle = (dto.lifecycleType() != null && !dto.lifecycleType().isBlank())
+                ? dto.lifecycleType().toUpperCase().trim()
+                : (Boolean.TRUE.equals(dto.recurrenceEnabled()) ? "HABIT" : "ACTION");
+        action.setLifecycleType(lifecycle);
         action.setIsCompleted(false);
 
         ActionEntity saved = actionRepository.save(action);
         return ResponseEntity.ok(saved);
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<ActionEntity> updateAction(@PathVariable String id, @RequestBody UpdateActionDto dto) {
+        UserEntity user = resolveCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Optional<ActionEntity> actionOpt = actionRepository.findById(id);
+        if (actionOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ActionEntity action = actionOpt.get();
+        if (dto.title() != null && !dto.title().isBlank()) {
+            action.setTitle(dto.title().trim());
+        }
+        if (dto.description() != null) {
+            action.setDescription(dto.description());
+        }
+        if (dto.areaId() != null && !dto.areaId().isBlank()) {
+            action.setAreaId(dto.areaId().trim());
+        }
+        if (dto.taskEnergyType() != null && !dto.taskEnergyType().isBlank()) {
+            String energyType = dto.taskEnergyType().toUpperCase().trim();
+            if (List.of("NEUTRAL", "RESTORATIVE", "POISON").contains(energyType)) {
+                action.setTaskEnergyType(energyType);
+            }
+        }
+        if (dto.baseValue() != null && dto.baseValue().compareTo(BigDecimal.ZERO) > 0) {
+            action.setBaseValue(dto.baseValue());
+        }
+        if (dto.recurrenceEnabled() != null) {
+            action.setRecurrenceEnabled(dto.recurrenceEnabled());
+        }
+        if (dto.recurrenceType() != null) {
+            action.setRecurrenceType(dto.recurrenceType());
+        }
+        if (dto.lifecycleType() != null && !dto.lifecycleType().isBlank()) {
+            action.setLifecycleType(dto.lifecycleType().toUpperCase().trim());
+        }
+
+        ActionEntity saved = actionRepository.save(action);
+        return ResponseEntity.ok(saved);
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> deleteAction(@PathVariable String id) {
+        UserEntity user = resolveCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Optional<ActionEntity> actionOpt = actionRepository.findById(id);
+        if (actionOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        actionRepository.delete(actionOpt.get());
+        return ResponseEntity.ok(Map.of("success", true, "id", id, "message", "Ação excluída com sucesso."));
     }
 
     @PostMapping("/{id}/complete")
@@ -141,8 +228,12 @@ public class ActionController {
 
         ActionEntity action = actionOpt.get();
 
-        // 1. Processa Débito / Recuperação de Prana
-        PranaService.PranaTransactionResult pranaResult = pranaService.processActionPrana(user.getId(), action);
+        int effortLevel = (dto != null && dto.effortLevel() != null && dto.effortLevel() >= 1 && dto.effortLevel() <= 5)
+                ? dto.effortLevel()
+                : 1;
+
+        // 1. Processa Débito / Recuperação de Prana proporcional ao esforço (ADR-000: -5 a -35 ou +10 a +50)
+        PranaService.PranaTransactionResult pranaResult = pranaService.processActionPrana(user.getId(), action, effortLevel);
 
         // Se o Mago estiver em Exaustão e a ação for NEUTRAL, bloqueia
         if ("NEUTRAL".equalsIgnoreCase(action.getTaskEnergyType()) && pranaResult.delta() == 0 && pranaResult.exhausted()) {
@@ -164,9 +255,6 @@ public class ActionController {
         long presenceSeconds = (dto != null && dto.presenceSeconds() != null && dto.presenceSeconds() >= 0)
                 ? dto.presenceSeconds()
                 : 30;
-        int effortLevel = (dto != null && dto.effortLevel() != null && dto.effortLevel() >= 1 && dto.effortLevel() <= 5)
-                ? dto.effortLevel()
-                : 1;
 
         List<String> areasInOrder = new ArrayList<>();
         if (action.getAreaId() != null) {

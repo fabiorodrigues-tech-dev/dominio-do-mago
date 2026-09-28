@@ -111,7 +111,8 @@ class ActionControllerTest {
                 "RESTORATIVE",
                 BigDecimal.valueOf(25.0),
                 true,
-                "DAILY"
+                "DAILY",
+                "ACTION"
         );
 
         ResponseEntity<ActionEntity> response = controller.createAction(dto);
@@ -121,6 +122,7 @@ class ActionControllerTest {
         assertThat(response.getBody().getTitle()).isEqualTo("Meditação Diária");
         assertThat(response.getBody().getTaskEnergyType()).isEqualTo("RESTORATIVE");
         assertThat(response.getBody().getRecurrenceEnabled()).isTrue();
+        assertThat(response.getBody().getLifecycleType()).isEqualTo("ACTION");
     }
 
     @Test
@@ -137,7 +139,7 @@ class ActionControllerTest {
         when(actionRepository.findById("act-123")).thenReturn(Optional.of(action));
         when(actionRepository.save(any(ActionEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(pranaService.processActionPrana(eq(userId), eq(action))).thenReturn(
+        when(pranaService.processActionPrana(eq(userId), eq(action), anyInt())).thenReturn(
                 new PranaService.PranaTransactionResult(userId, 70, 60, -10, false, "NEUTRAL", "-10 Prana consumido.")
         );
 
@@ -176,7 +178,7 @@ class ActionControllerTest {
         action.setTaskEnergyType("NEUTRAL");
 
         when(actionRepository.findById("act-ex")).thenReturn(Optional.of(action));
-        when(pranaService.processActionPrana(eq(userId), eq(action))).thenReturn(
+        when(pranaService.processActionPrana(eq(userId), eq(action), anyInt())).thenReturn(
                 new PranaService.PranaTransactionResult(userId, 0, 0, 0, true, "NEUTRAL", "Mago em Exaustão!")
         );
 

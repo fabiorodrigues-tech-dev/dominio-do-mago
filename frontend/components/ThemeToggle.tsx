@@ -15,7 +15,7 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
+      <div className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
         <Sun className="w-4 h-4 opacity-40" />
       </div>
     );
@@ -34,7 +34,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       title={isDark ? "Alternar para Modo Claro (Luz Arcana)" : "Alternar para Modo Escuro (Vácuo Cósmico)"}
       aria-label="Alternar Tema Claro/Escuro"
-      className="relative p-2 rounded-xl border transition-all duration-300 flex items-center justify-center bg-white/10 dark:bg-white/5 border-slate-300/40 dark:border-white/10 text-amber-500 dark:text-cyan-300 shadow-sm hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] backdrop-blur-xl"
+      className="relative p-2.5 min-h-[44px] min-w-[44px] rounded-xl border transition-all duration-300 flex items-center justify-center bg-white/40 dark:bg-white/5 border-slate-300/40 dark:border-white/10 text-slate-700 dark:text-cyan-300 shadow-sm hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] backdrop-blur-xl cursor-pointer"
     >
       <motion.div
         key={isDark ? 'dark' : 'light'}
@@ -46,7 +46,7 @@ export default function ThemeToggle() {
         {isDark ? (
           <Moon className="w-4 h-4 text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
         ) : (
-          <Sun className="w-4 h-4 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+          <Sun className="w-4 h-4 text-slate-700 dark:text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
         )}
       </motion.div>
     </motion.button>

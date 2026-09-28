@@ -219,6 +219,7 @@ export interface IActionLike {
   baseValue?: number;
   recurrenceEnabled?: boolean;
   recurrenceType?: string;
+  lifecycleType?: string;
   isCompleted?: boolean;
   lastCompletedAt?: string;
   createdAt?: string;
@@ -261,6 +262,7 @@ export const getActions = async (): Promise<IActionLike[]> => {
       baseValue: t.xpReward || 20,
       recurrenceEnabled: t.type === 'habit',
       recurrenceType: t.type === 'habit' ? 'DAILY' : undefined,
+      lifecycleType: t.type === 'habit' ? 'HABIT' : 'ACTION',
       isCompleted: t.completed,
       completed: t.completed,
       xpReward: t.xpReward,
@@ -278,6 +280,7 @@ export const createAction = async (data: {
   baseValue?: number;
   recurrenceEnabled?: boolean;
   recurrenceType?: string;
+  lifecycleType?: string;
 }): Promise<IActionLike> => {
   try {
     const response = await api.post('/actions', data);
@@ -298,11 +301,33 @@ export const createAction = async (data: {
       taskEnergyType: data.taskEnergyType || 'NEUTRAL',
       baseValue: legacy.xpReward,
       recurrenceEnabled: data.recurrenceEnabled,
+      lifecycleType: data.recurrenceEnabled ? 'HABIT' : 'ACTION',
       isCompleted: legacy.completed,
       completed: legacy.completed,
       element: legacy.element
     };
   }
+};
+
+export const updateAction = async (id: string, data: Partial<{
+  title: string;
+  description?: string;
+  areaId?: string;
+  taskEnergyType?: string;
+  baseValue?: number;
+  recurrenceEnabled?: boolean;
+  recurrenceType?: string;
+  lifecycleType?: string;
+}>): Promise<IActionLike> => {
+  const response = await api.put(`/actions/${id}`, data);
+  triggerDashboardRefresh();
+  return response.data;
+};
+
+export const deleteAction = async (id: string): Promise<{ success: boolean; id: string }> => {
+  const response = await api.delete(`/actions/${id}`);
+  triggerDashboardRefresh();
+  return response.data;
 };
 
 export const completeAction = async (

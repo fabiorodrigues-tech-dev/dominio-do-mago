@@ -68,6 +68,45 @@ public class PranaService {
      * - POISON: dreno severo de Prana. Se atingir 0, causa dano residual direto no HP do Mago.
      * - NEUTRAL: consome a energia padrão de foco/trabalho.
      */
+    /**
+     * Processa o impacto de uma Ação sobre o Prana do Mago de acordo com a sua tipagem energética e esforço:
+     * - RESTORATIVE: regenera Prana (+10 a +50 conforme o esforço) e amplificado pelo modificador astrológico.
+     * - POISON: dreno severo de Prana. Se atingir 0, causa dano residual direto no HP do Mago.
+     * - NEUTRAL: consome Prana proporcional ao esforço (-5 a -35).
+     */
+    @Transactional
+    public PranaTransactionResult processActionPrana(UUID userId, ActionEntity action, int effortLevel) {
+        String energyType = (action != null && action.getTaskEnergyType() != null)
+                ? action.getTaskEnergyType().toUpperCase().trim()
+                : "NEUTRAL";
+
+        int boundedEffort = Math.max(1, Math.min(5, effortLevel));
+
+        return switch (energyType) {
+            case "RESTORATIVE" -> {
+                int gain = switch (boundedEffort) {
+                    case 2 -> 20;
+                    case 3 -> 30;
+                    case 4 -> 40;
+                    case 5 -> 50;
+                    default -> 10;
+                };
+                yield processRestorativeAction(userId, gain);
+            }
+            case "POISON" -> processPoisonAction(userId, DEFAULT_POISON_DRAIN);
+            default -> {
+                int cost = switch (boundedEffort) {
+                    case 2 -> 12;
+                    case 3 -> 20;
+                    case 4 -> 27;
+                    case 5 -> 35;
+                    default -> 5;
+                };
+                yield processNeutralAction(userId, cost);
+            }
+        };
+    }
+
     @Transactional
     public PranaTransactionResult processActionPrana(UUID userId, ActionEntity action) {
         String energyType = (action != null && action.getTaskEnergyType() != null)

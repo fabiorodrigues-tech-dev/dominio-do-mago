@@ -19,6 +19,9 @@ import {
   Skull,
   Check
 } from 'lucide-react';
+import { useRitualTimer } from '@/hooks/useRitualTimer';
+import RitualTaskCard from '@/components/timer/RitualTaskCard';
+import { ElementId } from '@/lib/design-tokens';
 import { 
   getActions, 
   createAction, 
@@ -35,6 +38,7 @@ type ElementFilter = 'todos' | 'fogo' | 'agua' | 'terra' | 'ar' | 'restauradoras
 
 export default function TemporalBoard() {
   const [actions, setActions] = useState<IActionLike[]>([]);
+  const { startTimer } = useRitualTimer();
   const [loading, setLoading] = useState(true);
   const [timeBlocks, setTimeBlocks] = useState<TimeBlockItem[]>([]);
   const [loadingTimeBlocks, setLoadingTimeBlocks] = useState(true);
@@ -210,27 +214,31 @@ export default function TemporalBoard() {
       return {
         icon: <Flame className="w-3 h-3 text-rose-400" />,
         badge: 'bg-rose-950/60 text-rose-300 border-rose-500/30',
-        name: 'FOGO'
+        name: 'FOGO',
+        element: 'fire' as ElementId,
       };
     }
     if (raw.includes('agu') || raw.includes('água') || raw.includes('water')) {
       return {
         icon: <Droplet className="w-3 h-3 text-cyan-400" />,
         badge: 'bg-cyan-950/60 text-cyan-300 border-cyan-500/30',
-        name: 'ÁGUA'
+        name: 'ÁGUA',
+        element: 'water' as ElementId,
       };
     }
     if (raw.includes('terr') || raw.includes('earth')) {
       return {
         icon: <Mountain className="w-3 h-3 text-amber-400" />,
         badge: 'bg-amber-950/60 text-amber-300 border-amber-500/30',
-        name: 'TERRA'
+        name: 'TERRA',
+        element: 'earth' as ElementId,
       };
     }
     return {
       icon: <Wind className="w-3 h-3 text-emerald-400" />,
       badge: 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30',
-      name: 'AR'
+      name: 'AR',
+      element: 'air' as ElementId,
     };
   };
 
@@ -280,7 +288,7 @@ export default function TemporalBoard() {
   };
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-4 pb-32">
 
       {/* Banner de Feedback / Notificação do Dispatcher */}
       <AnimatePresence>
@@ -301,7 +309,8 @@ export default function TemporalBoard() {
             </div>
             <button
               onClick={() => setDispatchNotification(null)}
-              className="text-fg-tertiary hover:text-fg-primary text-xs"
+              aria-label="Fechar notificação"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-fg-tertiary hover:text-fg-primary text-sm transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -328,18 +337,18 @@ export default function TemporalBoard() {
           <p className="text-xs text-rose-200 leading-relaxed">
             O Mago exauriu suas reservas vitais. Rituais neutros não podem ser despachados. Execute rituais com a etiqueta <strong>🌿 +Prana (Restauradora)</strong> para recuperar a sua energia, ou utilize o canal de revitalização emergencial:
           </p>
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
             <button
               onClick={() => setFilter('restauradoras')}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs font-bold transition-all cursor-pointer"
+              className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs font-bold transition-all flex items-center justify-center cursor-pointer"
             >
               Filtrar Restauradoras
             </button>
             <button
               onClick={handleQuickRecharge}
-              className="px-3 py-1.5 rounded-xl bg-btn-primary/20 hover:bg-btn-primary/30 border border-btn-primary/40 text-fg-primary text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              className="min-h-[44px] px-4 py-2 rounded-xl bg-btn-primary/20 hover:bg-btn-primary/30 border border-btn-primary/40 text-fg-primary text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <RotateCcw className="w-3 h-3 text-btn-primary" />
+              <RotateCcw className="w-3.5 h-3.5 text-btn-primary" />
               Revitalizar Prana (Conselho)
             </button>
           </div>
@@ -350,7 +359,7 @@ export default function TemporalBoard() {
       <motion.div 
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-5 rounded-3xl designcode-card space-y-4 hover:border-container-border/80 transition-all"
+        className="p-5 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none space-y-4 hover:border-white/60 dark:hover:border-white/20 transition-all"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -358,7 +367,7 @@ export default function TemporalBoard() {
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm font-bold text-fg-primary uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
                 Quadro Temporal de Hoje
                 <span className="text-[11px] text-cyan-400 font-mono font-semibold">
                   ({timeBlocks.length})
@@ -401,7 +410,7 @@ export default function TemporalBoard() {
                   }`} />
                   <div className="overflow-hidden">
                     <p className={`text-xs font-semibold truncate ${
-                      block.isCompleted ? 'text-fg-tertiary line-through' : 'text-fg-primary'
+                      block.isCompleted ? 'text-slate-400 dark:text-fg-tertiary line-through' : 'text-slate-800 dark:text-white'
                     }`}>
                       {block.title}
                     </p>
@@ -413,7 +422,7 @@ export default function TemporalBoard() {
                 </div>
 
                 {block.isCompleted ? (
-                  <span className="text-[10px] px-2.5 py-1 rounded-xl font-mono font-bold shrink-0 border bg-emerald-950/60 text-emerald-300 border-emerald-500/40 flex items-center gap-1.5">
+                  <span className="min-h-[44px] text-[10px] px-3.5 py-2 rounded-xl font-mono font-bold shrink-0 border bg-emerald-950/60 text-emerald-300 border-emerald-500/40 flex items-center justify-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     Concluído
                   </span>
@@ -421,9 +430,9 @@ export default function TemporalBoard() {
                   <button
                     onClick={() => handleCompleteTimeBlock(block)}
                     disabled={completingBlockId === block.id}
-                    className="text-[10px] px-3 py-1 rounded-xl font-mono font-bold shrink-0 border bg-cyan-950/60 text-cyan-300 border-cyan-500/40 hover:bg-cyan-900/50 hover:border-cyan-400 hover:text-cyan-100 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                    className="min-h-[44px] text-[10px] px-3.5 py-2 rounded-xl font-mono font-bold shrink-0 border bg-cyan-950/60 text-cyan-300 border-cyan-500/40 hover:bg-cyan-900/50 hover:border-cyan-400 hover:text-cyan-100 transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                   >
-                    <Circle className="w-3 h-3 text-cyan-400" />
+                    <Circle className="w-3.5 h-3.5 text-cyan-400" />
                     {completingBlockId === block.id ? 'A concluir...' : 'Agendado'}
                   </button>
                 )}
@@ -434,13 +443,13 @@ export default function TemporalBoard() {
       </motion.div>
 
       {/* SEÇÃO 2: LISTA DIÁRIA / DISPATCHER (CONTRATO IActionLike UNIFICADO) */}
-      <div className="p-4 rounded-3xl designcode-card flex items-center justify-between border border-container-border">
+      <div className="p-4 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-btn-primary/20 text-btn-primary border border-btn-primary/30">
             <Clock className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xs font-bold text-fg-primary uppercase tracking-wider">
+            <h2 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">
               Dispatcher de Rituais & Hábitos Diários
             </h2>
             <p className="text-[10px] text-fg-secondary">
@@ -451,7 +460,7 @@ export default function TemporalBoard() {
 
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="px-3.5 py-1.5 rounded-full bg-btn-primary/20 hover:bg-btn-primary/30 border border-btn-primary/40 text-fg-primary text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
+          className="min-h-[44px] px-4 py-2 rounded-full bg-btn-primary/20 hover:bg-btn-primary/30 border border-btn-primary/40 text-fg-primary text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
         >
           <Plus className="w-3.5 h-3.5 text-btn-primary" />
           <span>Novo Item</span>
@@ -466,10 +475,10 @@ export default function TemporalBoard() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             onSubmit={handleCreateAction}
-            className="p-4 rounded-3xl designcode-card space-y-3.5 overflow-hidden shadow-xl border border-btn-primary/30"
+            className="p-4 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none space-y-3.5 overflow-hidden border-btn-primary/30"
           >
-            <div className="flex items-center justify-between border-b designcode-divider pb-2">
-              <span className="text-xs font-bold text-fg-primary flex items-center gap-1.5">
+            <div className="flex items-center justify-between border-b border-white/40 dark:border-white/10 pb-2">
+              <span className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-btn-primary" />
                 Forjar Novo Ritual / Hábito no Grimório
               </span>
@@ -483,7 +492,7 @@ export default function TemporalBoard() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Ex: Treino de Foco no Fogo / Meditação Restauradora..."
-              className="w-full bg-black/40 text-fg-primary placeholder:text-fg-tertiary rounded-2xl px-3.5 py-2.5 text-xs border border-container-border focus:outline-none focus:border-btn-primary/60"
+              className="w-full bg-black/40 text-fg-primary placeholder:text-fg-tertiary rounded-2xl px-3.5 py-3 text-xs border border-container-border focus:outline-none focus:border-btn-primary/60 min-h-[44px]"
             />
 
             {/* Configuração de Energia (Prana) */}
@@ -495,7 +504,7 @@ export default function TemporalBoard() {
                 <button
                   type="button"
                   onClick={() => setNewEnergyType('NEUTRAL')}
-                  className={`py-1.5 px-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${
+                  className={`min-h-[44px] py-2 px-2.5 rounded-xl text-[10px] font-bold uppercase transition-all border flex items-center justify-center ${
                     newEnergyType === 'NEUTRAL'
                       ? 'bg-container-bg text-fg-primary border-btn-primary/50 shadow-sm'
                       : 'bg-black/20 text-fg-tertiary border-container-border/50 hover:text-fg-secondary'
@@ -506,7 +515,7 @@ export default function TemporalBoard() {
                 <button
                   type="button"
                   onClick={() => setNewEnergyType('RESTORATIVE')}
-                  className={`py-1.5 px-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${
+                  className={`min-h-[44px] py-2 px-2.5 rounded-xl text-[10px] font-bold uppercase transition-all border flex items-center justify-center ${
                     newEnergyType === 'RESTORATIVE'
                       ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500 shadow-sm'
                       : 'bg-black/20 text-fg-tertiary border-container-border/50 hover:text-fg-secondary'
@@ -517,7 +526,7 @@ export default function TemporalBoard() {
                 <button
                   type="button"
                   onClick={() => setNewEnergyType('POISON')}
-                  className={`py-1.5 px-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${
+                  className={`min-h-[44px] py-2 px-2.5 rounded-xl text-[10px] font-bold uppercase transition-all border flex items-center justify-center ${
                     newEnergyType === 'POISON'
                       ? 'bg-rose-950/60 text-rose-300 border-rose-500 shadow-sm'
                       : 'bg-black/20 text-fg-tertiary border-container-border/50 hover:text-fg-secondary'
@@ -534,13 +543,13 @@ export default function TemporalBoard() {
                 <label className="text-[10px] font-semibold text-fg-secondary uppercase tracking-wider">
                   Elemento Primário:
                 </label>
-                <div className="grid grid-cols-4 gap-1">
+                <div className="grid grid-cols-4 gap-1.5">
                   {(['fogo', 'agua', 'terra', 'ar'] as const).map((elem) => (
                     <button
                       type="button"
                       key={elem}
                       onClick={() => setNewElement(elem)}
-                      className={`py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center border ${
+                      className={`min-h-[44px] py-2 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center border ${
                         newElement === elem
                           ? 'bg-btn-primary/30 text-fg-primary border-btn-primary/60'
                           : 'bg-black/20 text-fg-tertiary border-container-border/40 hover:text-fg-secondary'
@@ -560,7 +569,7 @@ export default function TemporalBoard() {
                   <button
                     type="button"
                     onClick={() => setIsRecurrent(true)}
-                    className={`py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all border ${
+                    className={`min-h-[44px] py-2 rounded-xl text-[10px] font-bold uppercase transition-all border flex items-center justify-center ${
                       isRecurrent
                         ? 'bg-btn-primary/20 text-fg-primary border-btn-primary/40'
                         : 'bg-black/20 text-fg-tertiary border-container-border/40'
@@ -571,7 +580,7 @@ export default function TemporalBoard() {
                   <button
                     type="button"
                     onClick={() => setIsRecurrent(false)}
-                    className={`py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all border ${
+                    className={`min-h-[44px] py-2 rounded-xl text-[10px] font-bold uppercase transition-all border flex items-center justify-center ${
                       !isRecurrent
                         ? 'bg-btn-primary/20 text-fg-primary border-btn-primary/40'
                         : 'bg-black/20 text-fg-tertiary border-container-border/40'
@@ -586,14 +595,14 @@ export default function TemporalBoard() {
             <div className="flex gap-2 pt-2 border-t designcode-divider">
               <button
                 type="submit"
-                className="flex-1 py-2 rounded-xl designcode-btn-primary text-xs font-bold transition-all shadow-md cursor-pointer"
+                className="min-h-[44px] flex-1 py-2.5 rounded-xl designcode-btn-primary text-xs font-bold transition-all shadow-md flex items-center justify-center cursor-pointer"
               >
                 Forjar & Salvar Item
               </button>
               <button
                 type="button"
                 onClick={() => setIsAdding(false)}
-                className="px-3 py-2 rounded-xl bg-container-bg text-fg-secondary hover:text-fg-primary text-xs font-semibold cursor-pointer border border-container-border"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-container-bg text-fg-secondary hover:text-fg-primary text-xs font-semibold flex items-center justify-center cursor-pointer border border-container-border"
               >
                 Cancelar
               </button>
@@ -602,11 +611,11 @@ export default function TemporalBoard() {
         )}
       </AnimatePresence>
 
-      {/* FILTRO POR CATEGORIA & ENERGIA */}
-      <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+      {/* FILTRO POR CATEGORIA & ENERGIA COM TOQUE CONFORTÁVEL */}
+      <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2">
         <button
           onClick={() => setFilter('todos')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 border ${
+          className={`min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center justify-center border cursor-pointer ${
             filter === 'todos'
               ? 'bg-btn-primary/20 text-fg-primary border-btn-primary/40 shadow-sm'
               : 'bg-container-bg text-fg-secondary border-container-border hover:text-fg-primary'
@@ -617,7 +626,7 @@ export default function TemporalBoard() {
 
         <button
           onClick={() => setFilter('restauradoras')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center gap-1 border ${
+          className={`min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center justify-center gap-1.5 border cursor-pointer ${
             filter === 'restauradoras'
               ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-sm'
               : 'bg-container-bg text-fg-secondary border-container-border hover:text-fg-primary'
@@ -628,51 +637,51 @@ export default function TemporalBoard() {
 
         <button
           onClick={() => setFilter('fogo')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center gap-1 border ${
+          className={`min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center justify-center gap-1.5 border cursor-pointer ${
             filter === 'fogo'
               ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 shadow-sm'
               : 'bg-container-bg text-fg-secondary border-container-border hover:text-fg-primary'
           }`}
         >
-          <Flame className="w-3 h-3 text-rose-400" /> Fogo
+          <Flame className="w-3.5 h-3.5 text-rose-400" /> Fogo
         </button>
 
         <button
           onClick={() => setFilter('agua')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center gap-1 border ${
+          className={`min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center justify-center gap-1.5 border cursor-pointer ${
             filter === 'agua'
               ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-sm'
               : 'bg-container-bg text-fg-secondary border-container-border hover:text-fg-primary'
           }`}
         >
-          <Droplet className="w-3 h-3 text-cyan-400" /> Água
+          <Droplet className="w-3.5 h-3.5 text-cyan-400" /> Água
         </button>
 
         <button
           onClick={() => setFilter('terra')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center gap-1 border ${
+          className={`min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center justify-center gap-1.5 border cursor-pointer ${
             filter === 'terra'
               ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm'
               : 'bg-container-bg text-fg-secondary border-container-border hover:text-fg-primary'
           }`}
         >
-          <Mountain className="w-3 h-3 text-amber-400" /> Terra
+          <Mountain className="w-3.5 h-3.5 text-amber-400" /> Terra
         </button>
 
         <button
           onClick={() => setFilter('ar')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center gap-1 border ${
+          className={`min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full text-xs font-semibold transition-all shrink-0 flex items-center justify-center gap-1.5 border cursor-pointer ${
             filter === 'ar'
               ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-sm'
               : 'bg-container-bg text-fg-secondary border-container-border hover:text-fg-primary'
           }`}
         >
-          <Wind className="w-3 h-3 text-emerald-400" /> Ar
+          <Wind className="w-3.5 h-3.5 text-emerald-400" /> Ar
         </button>
       </div>
 
       {/* GRID DE ITENS (DISPATCHER COM CONTRATO IActionLike) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-2.5 sm:px-1">
         {loading ? (
           <div className="py-12 text-center text-xs text-fg-tertiary animate-pulse col-span-2">
             Sintonizando o catálogo de rituais do Mago...
@@ -690,63 +699,18 @@ export default function TemporalBoard() {
             const isDispatchingThis = dispatchingId === action.id;
 
             return (
-              <motion.div
+              <RitualTaskCard
                 key={action.id}
-                layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-3.5 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-3 shadow-md ${
-                  isCompleted
-                    ? 'bg-emerald-950/20 border-emerald-500/30 opacity-75'
-                    : 'designcode-card hover:border-container-border/90'
-                }`}
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <button
-                    onClick={() => handleToggleAction(action)}
-                    disabled={isDispatchingThis}
-                    className="shrink-0 focus:outline-none transition-transform active:scale-90 cursor-pointer"
-                    title={isCompleted ? 'Reabrir ritual' : 'Despachar conclusão'}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-fg-tertiary hover:text-btn-primary transition-colors" />
-                    )}
-                  </button>
-
-                  <div className="overflow-hidden">
-                    <p className={`text-xs font-semibold truncate transition-all ${
-                      isCompleted ? 'line-through text-fg-tertiary' : 'text-fg-primary'
-                    }`}>
-                      {action.title}
-                    </p>
-                    
-                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      {/* Badge Elemental */}
-                      <span className={`inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full border font-bold ${style.badge}`}>
-                        {style.icon}
-                        {style.name}
-                      </span>
-
-                      {/* Chip de Energia (Prana) */}
-                      {energyBadge}
-
-                      {/* Indicador de Hábito / Ação */}
-                      <span className="text-[10px] font-mono text-fg-tertiary">
-                        {isItemRecurrent ? '🔄 Diário' : '🎯 Ação'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="shrink-0 text-right">
-                  <span className="text-xs font-mono font-bold text-fg-primary bg-container-bg px-2 py-1 rounded-xl border border-container-border inline-flex items-center gap-1 shadow-sm">
-                    <Zap className="w-3 h-3 text-btn-primary" />
-                    +{action.baseValue || action.xpReward || 20} XP
-                  </span>
-                </div>
-              </motion.div>
+                title={action.title}
+                tags={[
+                  isItemRecurrent ? 'Diário' : 'Ação',
+                  action.taskEnergyType === 'RESTORATIVE' ? '+Prana' : action.taskEnergyType === 'POISON' ? 'Veneno' : 'Neutra'
+                ]}
+                element={style.element || action.element || 'fire'}
+                estimatedLabel={(action as any).estimated_minutes ? `${(action as any).estimated_minutes}:00` : "25:00"}
+                onStart={() => startTimer(action)}
+                completed={isCompleted}
+              />
             );
           })
         )}

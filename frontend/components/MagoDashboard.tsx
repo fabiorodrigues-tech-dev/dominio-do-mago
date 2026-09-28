@@ -1,12 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import AuraAvatar3D from './3d/AuraAvatar3D';
-import OrchestratorChat from './OrchestratorChat';
+import OrchestratorChat from './OrchestratorChat'; // legacy – kept for fallback
+import OrchestratorChatView from '@/components/orchestrator/OrchestratorChatView';
 import TemporalBoard from './TemporalBoard';
 import KnowledgeGrimoire from './KnowledgeGrimoire';
 import AvatarForge from './AvatarForge';
 import ThemeToggle from './ThemeToggle';
+import ProductivityAnalytics from '@/components/analytics/ProductivityAnalytics';
+import ArcaneProfileStats from '@/components/profile/ArcaneProfileStats';
+import ArcaneLeaderboard, { LeaderboardPeriod } from '@/components/reports/ArcaneLeaderboard';
+import { useRitualTimer } from '@/hooks/useRitualTimer';
 import { 
   Sparkles, 
   Bot, 
@@ -25,9 +30,7 @@ import {
   Key,
   Check,
   Heart,
-  LayoutDashboard,
   AlertTriangle,
-  Skull
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api, { getUserDashboardData, DashboardData } from '../services/api';
@@ -37,6 +40,9 @@ export default function MagoDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const { activeTab, setActiveTab } = useNavigation();
   const [isForgeOpen, setIsForgeOpen] = useState(false);
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState<LeaderboardPeriod>('week');
+  const ritualTimer = useRitualTimer();
+  const mainRef = useRef<HTMLElement>(null);
 
   const loadDashboard = async () => {
     try {
@@ -65,6 +71,13 @@ export default function MagoDashboard() {
     return () => window.removeEventListener('nexus:refresh-dashboard', handleRefresh);
   }, []);
 
+  // Global Scroll Reset: volta ao topo quando a aba muda
+  useEffect(() => {
+    // Tenta rolar a window e o main container
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeTab]);
+
   const handleLogout = () => {
     localStorage.removeItem('mago_token');
     window.location.href = '/login';
@@ -90,16 +103,16 @@ export default function MagoDashboard() {
       <motion.div 
         whileHover={{ y: -2 }}
         transition={{ duration: 0.2 }}
-        className="p-4 rounded-2xl designcode-card transition-all hover:border-container-border/80"
+        className="p-4 rounded-2xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none transition-all hover:border-white/60 dark:hover:border-white/20"
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className={`p-1.5 rounded-xl bg-container-bg border border-container-border/50 ${colorClass}`}>
               {icon}
             </span>
-            <span className="text-xs font-semibold text-fg-secondary uppercase tracking-wider">{label}</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-fg-secondary uppercase tracking-wider">{label}</span>
           </div>
-          <span className="text-xs font-mono font-bold text-fg-primary">{value} XP</span>
+          <span className="text-xs font-mono font-bold text-slate-800 dark:text-white">{value} XP</span>
         </div>
         <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden border border-container-border/40 p-0.5 shadow-inner">
           <motion.div 
@@ -118,7 +131,8 @@ export default function MagoDashboard() {
       case 'grimorio': return 'Grimório Arcano • Visão Geral';
       case 'chat': return 'Terminal do Orquestrador • IA Autônoma';
       case 'missoes': return 'Quadro Temporal & Rituais Diários';
-      case 'conhecimento': return 'Grimório de Conhecimento & Histórico';
+      case 'conhecimento':
+      case 'relatorios': return 'Grimório de Conhecimento & Histórico';
       case 'perfil': return 'Santuário do Mago • Configurações';
       default: return 'Domínio do Mago';
     }
@@ -136,114 +150,113 @@ export default function MagoDashboard() {
         }}
       />
 
-      {/* Topbar Superior Global */}
-      <header className="px-4 md:px-6 py-3 shrink-0 flex items-center justify-between designcode-card z-20 shadow-lg">
-        
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 md:hidden">
-            <span className="w-2 h-2 rounded-full bg-btn-primary animate-ping" />
-            <span className="text-xs font-extrabold tracking-wider text-fg-primary uppercase">Domínio do Mago</span>
-          </div>
-          <div className="hidden md:flex items-center gap-2">
-            <LayoutDashboard className="w-4 h-4 text-btn-primary" />
-            <h2 className="text-xs font-bold text-fg-secondary uppercase tracking-wider">
-              {getActiveTabTitle()}
-            </h2>
-          </div>
-        </div>
+      {/* ── RPG Dynamic HUD — sticky, micro-números, anel de XP ──────────────── */}
+      <header className="mx-4 mt-2 shrink-0 sticky top-2 z-50 md:hidden">
+        <div className="flex items-center gap-2.5 rounded-2xl px-3 py-2 bg-white/70 backdrop-blur-2xl border border-white/50 shadow-sm dark:bg-white/[0.04] dark:backdrop-blur-xl dark:border-white/10 dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.7)]">
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* WIDGET INDICADOR DE PRANA (0 a 100) COM FEEDBACK DE EXAUSTÃO */}
-          <div 
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-300 shadow-sm ${
-              isExhausted
-                ? 'bg-rose-500/20 border-rose-500/60 text-rose-300 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.4)]'
-                : isFlow
-                ? 'bg-cyan-500/15 border-cyan-400/40 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.25)]'
-                : 'bg-container-bg border-container-border text-fg-primary'
-            }`}
-            title={
-              isExhausted 
-                ? 'EXAUSTÃO ARCANA: Prana esgotado (0/100)! Complete rituais restauradores para recuperar Prana.' 
-                : `Nível de Prana: ${pranaLevel}/100${isFlow ? ' (Fluxo Pleno)' : ''}`
-            }
-          >
-            {isExhausted ? (
-              <Skull className="w-3.5 h-3.5 text-rose-400 animate-bounce" />
-            ) : (
-              <Flame className="w-3.5 h-3.5 text-cyan-400" />
-            )}
-            
-            <div className="flex items-center gap-1.5 text-xs font-bold font-mono">
-              <span className="hidden sm:inline uppercase text-[10px] tracking-wider font-sans text-fg-secondary">
-                {isExhausted ? 'Exaustão' : 'Prana'}
-              </span>
-              <span className={isExhausted ? 'text-rose-400 font-extrabold' : 'text-fg-primary'}>
-                {pranaLevel}/100
-              </span>
-            </div>
-
-            {/* Mini Barra Visual de Prana */}
-            <div className="w-10 sm:w-16 h-1.5 bg-black/40 rounded-full overflow-hidden border border-container-border/40 hidden xs:block">
-              <div 
-                style={{ width: `${Math.min(100, Math.max(0, pranaLevel))}%` }}
-                className={`h-full rounded-full transition-all duration-500 ${
-                  isExhausted 
-                    ? 'bg-rose-500' 
-                    : isFlow 
-                    ? 'bg-gradient-to-r from-emerald-400 to-cyan-400' 
-                    : 'bg-gradient-to-r from-blue-500 to-cyan-400'
-                }`}
+          {/* ── Esquerda: Badge de Nível com Anel SVG de XP ─────────────────── */}
+          <div className="relative shrink-0 flex items-center justify-center w-11 h-11">
+            {/* Anel SVG de XP (progresso circular subtil) */}
+            <svg
+              className="absolute inset-0 w-full h-full -rotate-90"
+              viewBox="0 0 44 44"
+              fill="none"
+              aria-hidden="true"
+            >
+              {/* Track */}
+              <circle cx="22" cy="22" r="19" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+              {/* Progresso de XP: calcula circunferência = 2π×19 ≈ 119.38 */}
+              <circle
+                cx="22" cy="22" r="19"
+                stroke="url(#xpGrad)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray="119.38"
+                strokeDashoffset={119.38 - (119.38 * ((dashboardData?.globalXp ?? 0) % 1000) / 1000)}
+                className="transition-all duration-700"
               />
+              <defs>
+                <linearGradient id="xpGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#818cf8" />
+                  <stop offset="100%" stopColor="#a78bfa" />
+                </linearGradient>
+              </defs>
+            </svg>
+            {/* Badge central */}
+            <div className="relative flex flex-col items-center justify-center w-8 h-8 rounded-xl bg-btn-primary/20 border border-btn-primary/30">
+              <span className="text-[8px] font-bold uppercase tracking-widest text-slate-700 dark:text-white/40 leading-none">LV</span>
+              <span className="text-[12px] font-extrabold text-slate-700 dark:text-white leading-none">
+                {dashboardData?.arcanoLevel ?? 10}
+              </span>
+              {/* Online dot */}
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-[#0B0B10]" />
+            </div>
+          </div>
+
+          {/* ── Centro: Prana + HP com micro-números ─────────────────────────── */}
+          <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+
+            {/* Prana */}
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <Flame className={`w-2.5 h-2.5 shrink-0 ${isExhausted ? 'text-rose-500' : 'text-cyan-600 dark:text-cyan-400'}`} />
+                  <span className={`text-[9px] font-bold uppercase tracking-wider leading-none ${isExhausted ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-cyan-400/70'}`}>
+                    {isExhausted ? 'EXAUSTÃO' : isFlow ? 'FLOW' : 'Prana'}
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono tabular-nums leading-none text-slate-700 dark:text-white/60">
+                  {pranaLevel}/100
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/[0.08]">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    isExhausted
+                      ? 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]'
+                      : isFlow
+                      ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.5)]'
+                      : 'bg-gradient-to-r from-blue-500 to-cyan-400'
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(0, pranaLevel))}%` }}
+                />
+              </div>
             </div>
 
-            {isExhausted && (
-              <span className="text-[9px] font-extrabold uppercase tracking-tight px-1.5 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-500/40">
-                CRÍTICO
-              </span>
-            )}
-            {isFlow && !isExhausted && (
-              <span className="hidden md:inline text-[9px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded bg-cyan-950/60 text-cyan-300 border border-cyan-500/30">
-                FLOW
-              </span>
-            )}
+            {/* HP */}
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <Heart className="w-2.5 h-2.5 shrink-0 text-rose-500 dark:text-rose-400 fill-rose-500 dark:fill-rose-400" />
+                  <span className="text-[9px] font-bold uppercase tracking-wider leading-none text-slate-700 dark:text-rose-400/70">HP</span>
+                </div>
+                <span className="text-[10px] font-mono tabular-nums leading-none text-slate-700 dark:text-white/60">
+                  {dashboardData?.hp ?? 100}/100
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/[0.08]">
+                <div
+                  className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-rose-600 to-pink-400 shadow-[0_0_6px_rgba(244,63,94,0.4)]"
+                  style={{ width: `${Math.min(100, Math.max(0, dashboardData?.hp ?? 100))}%` }}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Badge de Vida (HP) */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-bold shadow-sm">
-            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 animate-pulse" />
-            <span>{dashboardData?.hp ?? 100} HP</span>
+          {/* ── Direita: Theme Toggle ─────────────────────────────────────────── */}
+          <div className="shrink-0 text-slate-700 dark:text-cyan-300">
+            <ThemeToggle />
           </div>
-
-          {/* Badge de Energia / Stamina */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold shadow-sm">
-            <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            <span>{dashboardData?.energy ?? 100} EN</span>
-          </div>
-
-          {/* Badge de Nível Arcano */}
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-btn-primary/15 border border-btn-primary/30 text-fg-primary text-xs font-bold shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-btn-primary" />
-            <span className="hidden sm:inline text-fg-secondary">NÍVEL</span>
-            <span>{dashboardData?.arcanoLevel || 5}</span>
-          </div>
-
-          {/* Theme Toggle no topo */}
-          <ThemeToggle />
-          
-          {/* Botão Sair Mobile */}
-          <button 
-            onClick={handleLogout}
-            title="Sair do Domínio do Mago"
-            className="md:hidden p-2 rounded-xl bg-container-bg hover:bg-rose-500/20 text-fg-secondary hover:text-rose-400 transition-colors border border-container-border"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
         </div>
       </header>
 
-      {/* Banner de Feedback de Exaustão Arcana (Se pranaLevel <= 0) */}
-      {isExhausted && (
+
+
+      {/* Wrapper principal do conteúdo (evita sobreposição com o HUD sticky) */}
+      <main ref={mainRef} className="flex-1 w-full pt-4 md:pt-6 pb-24 relative">
+        
+        {/* Banner de Feedback de Exaustão Arcana (Se pranaLevel <= 0) */}
+        {isExhausted && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -257,15 +270,20 @@ export default function MagoDashboard() {
           </div>
           <button
             onClick={() => setActiveTab('missoes')}
-            className="px-3 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 text-[11px] font-bold shrink-0 transition-all cursor-pointer"
+            className="min-h-[44px] px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 text-xs font-bold shrink-0 transition-all flex items-center justify-center cursor-pointer"
           >
             Ver Rituais Restauradores
           </button>
         </motion.div>
       )}
 
-      {/* Área Central de Conteúdo com Scroll Suave */}
-      <div className="w-full space-y-6">
+
+
+      {/* Área Central de Conteúdo com Scroll Suave e Espaçamento Seguro (pb-36 sm:pb-24) */}
+      <div 
+        className="w-full space-y-6 pb-36 sm:pb-24"
+        style={{ paddingBottom: 'calc(9rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="w-full max-w-7xl mx-auto">
           
           <AnimatePresence mode="wait">
@@ -280,7 +298,7 @@ export default function MagoDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
-                className="space-y-6"
+                className="space-y-6 pb-32"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   
@@ -288,7 +306,7 @@ export default function MagoDashboard() {
                   <div className="lg:col-span-5 space-y-5">
                     
                     {/* 1. CONTAINER HERO: AVATAR 3D LOCAL */}
-                    <div className="relative h-[360px] sm:h-[400px] w-full rounded-3xl overflow-hidden designcode-card shadow-2xl group">
+                    <div className="relative h-48 sm:h-64 md:h-80 w-full rounded-3xl overflow-hidden bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none group">
                       
                       {/* Overlay gradiente suave */}
                       <div className="absolute inset-0 bg-gradient-to-t from-canvas via-transparent to-transparent z-10 pointer-events-none" />
@@ -297,7 +315,7 @@ export default function MagoDashboard() {
                       <div className="absolute top-3 right-3 z-20">
                         <button 
                           onClick={() => setIsForgeOpen(true)}
-                          className="px-3.5 py-1.5 rounded-full bg-btn-primary/20 hover:bg-btn-primary/30 border border-btn-primary/40 text-fg-primary text-xs font-bold transition-all backdrop-blur-xl flex items-center gap-1.5 shadow-md active:scale-95"
+                          className="min-h-[44px] px-4 py-2 rounded-full bg-btn-primary/20 hover:bg-btn-primary/30 border border-btn-primary/40 text-fg-primary text-xs font-bold transition-all backdrop-blur-xl flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
                         >
                           <Wand2 className="w-3.5 h-3.5 text-btn-primary" />
                           <span>Forja IA</span>
@@ -305,13 +323,15 @@ export default function MagoDashboard() {
                       </div>
 
                       {/* Componente 3D com Aura no Nível Máximo (5.0) */}
-                      <AuraAvatar3D auraRadius={dashboardData?.auraRadius || 5.0} />
+                      <div className="absolute inset-0 pointer-events-none sm:pointer-events-auto">
+                        <AuraAvatar3D auraRadius={dashboardData?.auraRadius || 5.0} />
+                      </div>
                       
                       {/* Legenda inferior do Avatar */}
                       <div className="absolute bottom-3.5 left-4 right-4 z-20 flex justify-between items-end pointer-events-none">
                         <div>
-                          <h1 className="text-base font-bold text-fg-primary drop-shadow-md">Fábio Rodrigues</h1>
-                          <p className="text-xs text-fg-secondary font-medium drop-shadow-sm">Mago Supremo da Produtividade</p>
+                          <h1 className="text-base font-bold text-slate-800 dark:text-white drop-shadow-md">Fábio Rodrigues</h1>
+                          <p className="text-xs text-slate-600 dark:text-fg-secondary font-medium drop-shadow-sm">Mago Supremo da Produtividade</p>
                         </div>
                         <span className="text-[10px] text-fg-tertiary font-mono bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-container-border">
                           Gire para inspecionar
@@ -323,12 +343,12 @@ export default function MagoDashboard() {
                     <motion.div 
                       whileHover={{ y: -2 }}
                       transition={{ duration: 0.2 }}
-                      className="p-5 rounded-3xl designcode-card space-y-4 hover:border-container-border/80 transition-all"
+                      className="p-5 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none space-y-4 hover:border-white/60 dark:hover:border-white/20 transition-all"
                     >
                       {/* Seção Prana Arcano */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center text-xs">
-                          <span className={`uppercase tracking-widest font-bold flex items-center gap-2 ${isExhausted ? 'text-rose-400 animate-pulse' : 'text-fg-primary'}`}>
+                          <span className={`uppercase tracking-widest font-bold flex items-center gap-2 ${isExhausted ? 'text-rose-400 animate-pulse' : 'text-slate-800 dark:text-white'}`}>
                             {isExhausted ? <AlertTriangle className="w-4 h-4 text-rose-400" /> : <Flame className="w-4 h-4 text-cyan-400" />}
                             Prana Arcano
                           </span>
@@ -365,7 +385,7 @@ export default function MagoDashboard() {
                       {/* Seção HP */}
                       <div className="space-y-2 pt-2 border-t designcode-divider">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-fg-primary uppercase tracking-widest font-bold flex items-center gap-2">
+                          <span className="text-slate-800 dark:text-white uppercase tracking-widest font-bold flex items-center gap-2">
                             <Heart className="w-4 h-4 text-rose-500 fill-rose-500 animate-pulse" />
                             Sopro Vital (HP)
                           </span>
@@ -396,7 +416,7 @@ export default function MagoDashboard() {
                       {/* Seção Energia / Stamina */}
                       <div className="space-y-2 pt-2 border-t designcode-divider">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-fg-primary uppercase tracking-widest font-bold flex items-center gap-2">
+                          <span className="text-slate-800 dark:text-white uppercase tracking-widest font-bold flex items-center gap-2">
                             <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
                             Energia (Stamina)
                           </span>
@@ -429,10 +449,10 @@ export default function MagoDashboard() {
                     <motion.div 
                       whileHover={{ y: -2 }}
                       transition={{ duration: 0.2 }}
-                      className="p-5 rounded-3xl designcode-card space-y-3 hover:border-container-border/80 transition-all"
+                      className="p-5 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none space-y-3 hover:border-white/60 dark:hover:border-white/20 transition-all"
                     >
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-fg-primary uppercase tracking-widest font-bold flex items-center gap-2">
+                        <span className="text-slate-800 dark:text-white uppercase tracking-widest font-bold flex items-center gap-2">
                           <Sparkles className="w-4 h-4 text-btn-primary" />
                           XP Global da Aura
                         </span>
@@ -461,7 +481,7 @@ export default function MagoDashboard() {
                     {/* OS QUATRO ELEMENTOS ARCANOS (GRID 2x2) */}
                     <div>
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-xs font-bold text-fg-primary uppercase tracking-wider flex items-center gap-2">
+                        <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
                           <Sparkles className="w-4 h-4 text-btn-primary" />
                           Progresso dos Quatro Elementos
                         </h3>
@@ -469,68 +489,78 @@ export default function MagoDashboard() {
                           Gamificação Ativa
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3.5">
-                        <ProgressBar 
-                          label="Fogo (Foco & Ação)" 
-                          value={dashboardData?.fireElement || 78} 
-                          icon={<Flame className="w-4 h-4" />} 
-                          colorClass="text-rose-400" 
-                        />
-                        <ProgressBar 
-                          label="Água (Fluidez & Sono)" 
-                          value={dashboardData?.waterElement || 45} 
-                          icon={<Droplet className="w-4 h-4" />} 
-                          colorClass="text-cyan-400" 
-                        />
-                        <ProgressBar 
-                          label="Terra (Rotina & Finanças)" 
-                          value={dashboardData?.earthElement || 92} 
-                          icon={<Mountain className="w-4 h-4" />} 
-                          colorClass="text-amber-400" 
-                        />
-                        <ProgressBar 
-                          label="Ar (Estudos & Sabedoria)" 
-                          value={dashboardData?.airElement || 60} 
-                          icon={<Wind className="w-4 h-4" />} 
-                          colorClass="text-emerald-400" 
-                        />
-                      </div>
+                      <ProductivityAnalytics 
+                        tasksCompleted={dashboardData?.fireElement ? Math.floor(dashboardData.fireElement / 10) : 12}
+                        totalDurationLabel="2h 15m"
+                        series={{
+                          fire: [
+                            { label: "8h", minutes: Math.floor((dashboardData?.fireElement || 78) * 0.3) },
+                            { label: "12h", minutes: Math.floor((dashboardData?.fireElement || 78) * 0.6) },
+                            { label: "Agora", minutes: dashboardData?.fireElement || 78 }
+                          ],
+                          water: [
+                            { label: "8h", minutes: Math.floor((dashboardData?.waterElement || 45) * 0.2) },
+                            { label: "12h", minutes: Math.floor((dashboardData?.waterElement || 45) * 0.5) },
+                            { label: "Agora", minutes: dashboardData?.waterElement || 45 }
+                          ],
+                          earth: [
+                            { label: "8h", minutes: Math.floor((dashboardData?.earthElement || 92) * 0.4) },
+                            { label: "12h", minutes: Math.floor((dashboardData?.earthElement || 92) * 0.7) },
+                            { label: "Agora", minutes: dashboardData?.earthElement || 92 }
+                          ],
+                          air: [
+                            { label: "8h", minutes: Math.floor((dashboardData?.airElement || 60) * 0.3) },
+                            { label: "12h", minutes: Math.floor((dashboardData?.airElement || 60) * 0.6) },
+                            { label: "Agora", minutes: dashboardData?.airElement || 60 }
+                          ]
+                        }}
+                      />
                     </div>
 
-                    {/* ATALHOS RÁPIDOS */}
+                    {/* ATALHOS RÁPIDOS & FUNIL DO DISPATCHER */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                       <button 
+                        type="button"
                         onClick={() => setActiveTab('chat')}
-                        className="p-4 rounded-2xl designcode-card text-left transition-all group shadow-md hover:border-container-border/90"
+                        className="p-4 rounded-2xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none text-left transition-all duration-200 group hover:border-btn-primary/60 active:scale-[0.98] cursor-pointer relative overflow-hidden"
                       >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <Bot className="w-5 h-5 text-btn-primary group-hover:scale-110 transition-transform" />
-                          <ChevronRight className="w-4 h-4 text-fg-tertiary group-hover:text-fg-primary transition-colors" />
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="p-2 rounded-xl bg-btn-primary/15 text-btn-primary group-hover:scale-110 transition-transform">
+                            <Bot className="w-5 h-5" />
+                          </div>
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-btn-primary/15 text-btn-primary border border-btn-primary/30 flex items-center gap-1 group-hover:bg-btn-primary group-hover:text-white transition-colors">
+                            Abrir Terminal <ChevronRight className="w-3 h-3 inline" />
+                          </span>
                         </div>
-                        <p className="text-xs font-bold text-fg-primary">Terminal do Orquestrador</p>
-                        <p className="text-[11px] text-fg-secondary">Agende rituais e execute comandos pela IA</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-white">Terminal do Orquestrador</p>
+                        <p className="text-[11px] text-slate-600 dark:text-fg-secondary mt-0.5">Agende rituais e execute comandos pela IA</p>
                       </button>
 
                       <button 
+                        type="button"
                         onClick={() => setActiveTab('missoes')}
-                        className="p-4 rounded-2xl designcode-card text-left transition-all group shadow-md hover:border-container-border/90"
+                        className="p-4 rounded-2xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none text-left transition-all duration-200 group hover:border-cyan-400/60 active:scale-[0.98] cursor-pointer relative overflow-hidden"
                       >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <CheckSquare className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                          <ChevronRight className="w-4 h-4 text-fg-tertiary group-hover:text-fg-primary transition-colors" />
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 group-hover:scale-110 transition-transform">
+                            <CheckSquare className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                          </div>
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-400/30 flex items-center gap-1 group-hover:bg-cyan-500 group-hover:text-black transition-colors">
+                            Abrir Dispatcher <ChevronRight className="w-3 h-3 inline" />
+                          </span>
                         </div>
-                        <p className="text-xs font-bold text-fg-primary">Quadro Temporal & Rituais</p>
-                        <p className="text-[11px] text-fg-secondary">Dispatcher de rituais, hábitos e Prana</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-white">Quadro Temporal & Rituais</p>
+                        <p className="text-[11px] text-slate-600 dark:text-fg-secondary mt-0.5">Dispatcher da Lista Diária, cronômetro ADR-000 e Prana</p>
                       </button>
                     </div>
 
                     {/* Resumo de Dica Arcana */}
-                    <div className="p-4 rounded-3xl designcode-card space-y-2 border border-container-border/80">
-                      <div className="flex items-center gap-2 text-xs font-bold text-fg-primary">
+                    <div className="p-4 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white">
                         <Sparkles className="w-4 h-4 text-btn-primary" />
                         <span>Dica da Sabedoria Elemental</span>
                       </div>
-                      <p className="text-xs text-fg-secondary leading-relaxed">
+                      <p className="text-xs text-slate-600 dark:text-fg-secondary leading-relaxed">
                         Conclua rituais restauradores para regenerar o seu <strong>Prana Arcano</strong>. Evite hábitos tóxicos ou venenos para não esgotar suas energias e sofrer danos diretos ao seu Sopro Vital (HP)!
                       </p>
                     </div>
@@ -550,9 +580,9 @@ export default function MagoDashboard() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.99 }}
                 transition={{ duration: 0.2 }}
-                className="h-[calc(100vh-8.5rem)] flex flex-col"
+                className="w-full min-h-[calc(100vh-16rem)] flex flex-col"
               >
-                <OrchestratorChat />
+                <OrchestratorChatView />
               </motion.div>
             )}
 
@@ -566,7 +596,7 @@ export default function MagoDashboard() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.99 }}
                 transition={{ duration: 0.2 }}
-                className="w-full"
+                className="w-full pb-32"
               >
                 <TemporalBoard />
               </motion.div>
@@ -575,16 +605,35 @@ export default function MagoDashboard() {
             {/* ============================================================ */}
             {/* ABA 4: GRIMÓRIO DE CONHECIMENTO & RELATÓRIOS */}
             {/* ============================================================ */}
-            {activeTab === 'conhecimento' && (
+            {(activeTab === 'conhecimento' || activeTab === 'relatorios') && (
               <motion.div
                 key="conhecimento"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="w-full"
+                className="w-full pb-32"
               >
-                <KnowledgeGrimoire dashboardData={dashboardData} />
+                <ArcaneLeaderboard 
+                  period={leaderboardPeriod}
+                  onPeriodChange={setLeaderboardPeriod}
+                  podium={[
+                    { rank: 1, name: 'Fábio Rodrigues', points: dashboardData?.globalXp || 2500, element: 'fire', flag: '🇵🇹', isCurrentUser: true },
+                    { rank: 2, name: 'Merlin_99', points: 2100, element: 'air', flag: '🇬🇧' },
+                    { rank: 3, name: 'Gandalf', points: 1850, element: 'earth', flag: '🇳🇿' },
+                  ]}
+                  rest={[
+                    { rank: 4, name: 'Morgana', points: 1500, element: 'water', flag: '🇫🇷' },
+                    { rank: 5, name: 'DrStrange', points: 1200, element: 'fire', flag: '🇺🇸' },
+                    { rank: 6, name: 'Harry', points: 1000, element: 'air', flag: '🇬🇧' },
+                    { rank: 7, name: 'Albus', points: 920, element: 'fire', flag: '🇬🇧' },
+                    { rank: 8, name: 'Raistlin', points: 870, element: 'earth', flag: '🇨🇦' },
+                    { rank: 9, name: 'Yennefer', points: 810, element: 'water', flag: '🇵🇱' },
+                    { rank: 10, name: 'Geralt', points: 750, element: 'air', flag: '🇵🇱' },
+                  ]}
+                  standingMessage="Você está à frente de 99% dos magos na sua região!"
+                  currentUserRank={1}
+                />
               </motion.div>
             )}
 
@@ -598,57 +647,77 @@ export default function MagoDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-6 max-w-4xl mx-auto"
+                className="space-y-6 max-w-4xl mx-auto pb-32"
               >
                 {/* Card de Identidade do Mago */}
-                <div className="p-6 md:p-8 rounded-3xl designcode-card text-center space-y-4 shadow-xl">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-container-bg border border-container-border flex items-center justify-center shadow-lg">
-                    <Shield className="w-10 h-10 text-btn-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-fg-primary">Fábio Rodrigues</h2>
-                    <p className="text-xs text-fg-secondary font-mono">fabioandre777@gmail.com</p>
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-btn-primary/15 border border-btn-primary/30 text-fg-primary text-xs font-semibold">
-                    <Award className="w-4 h-4 text-btn-primary" />
-                    <span>Mago Supremo • Nível {dashboardData?.arcanoLevel || 5}</span>
-                  </div>
+                <div className="w-full mb-8">
+                  <ArcaneProfileStats 
+                    name="Fábio Rodrigues"
+                    avatarUrl={dashboardData?.avatarGlbUrl ? undefined : undefined} // Not using 3d model URL as 2D avatar for now
+                    level={dashboardData?.arcanoLevel || 5}
+                    xpCurrent={dashboardData?.globalXp || 2500}
+                    xpNext={3000}
+                    points={dashboardData?.pranaLevel || 100}
+                    worldRank={42}
+                    localRank={1}
+                    badges={[
+                      { id: '1', element: 'fire', locked: false },
+                      { id: '2', element: 'water', locked: false },
+                      { id: '3', element: 'earth', locked: false },
+                      { id: '4', element: 'air', locked: true },
+                      { id: '5', element: 'fire', locked: true },
+                      { id: '6', locked: true },
+                    ]}
+                    ritualsThisMonth={42}
+                    ritualsGoal={50}
+                    grimoiresCreated={7}
+                    ritualsWon={128}
+                    weeklyPerformance={[
+                      { label: 'Seg', value: 40, element: 'fire' },
+                      { label: 'Ter', value: 70, element: 'earth' },
+                      { label: 'Qua', value: 30, element: 'water' },
+                      { label: 'Qui', value: 90, element: 'fire' },
+                      { label: 'Sex', value: 50, element: 'air' },
+                      { label: 'Sáb', value: 20, element: 'water' },
+                      { label: 'Dom', value: 80, element: 'earth' },
+                    ]}
+                  />
                 </div>
 
                 {/* Estado das Chaves Arcanas */}
-                <div className="p-5 rounded-3xl designcode-card space-y-3">
-                  <h3 className="text-xs font-bold text-fg-primary uppercase tracking-wider flex items-center gap-1.5">
+                <div className="p-5 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none space-y-3">
+                  <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                     <Key className="w-3.5 h-3.5 text-btn-primary" />
                     Conexões & Chaves de API
                   </h3>
 
                   <div className="space-y-2.5">
-                    <div className="p-3.5 rounded-2xl bg-container-bg border border-container-border/60 flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-white/40 dark:bg-white/[0.04] border border-white/30 dark:border-white/10 flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-fg-primary">Tripo3D API</p>
-                        <p className="text-[10px] text-fg-secondary">Forja de Avatares 3D em tempo real</p>
+                        <p className="text-xs font-semibold text-slate-800 dark:text-white">Tripo3D API</p>
+                        <p className="text-[10px] text-slate-600 dark:text-fg-secondary">Forja de Avatares 3D em tempo real</p>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-semibold">
+                      <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 font-semibold">
                         <Check className="w-3 h-3" /> Conectada
                       </span>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-container-bg border border-container-border/60 flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-white/40 dark:bg-white/[0.04] border border-white/30 dark:border-white/10 flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-fg-primary">Spring AI (Conselho Elemental v4.0)</p>
-                        <p className="text-[10px] text-fg-secondary">Agente Orquestrador & Tools Canônicas de Prana</p>
+                        <p className="text-xs font-semibold text-slate-800 dark:text-white">Spring AI (Conselho Elemental v4.0)</p>
+                        <p className="text-[10px] text-slate-600 dark:text-fg-secondary">Agente Orquestrador & Tools Canônicas de Prana</p>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-btn-primary/15 border border-btn-primary/30 text-fg-primary font-semibold">
+                      <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-btn-primary/15 border border-btn-primary/30 text-slate-800 dark:text-white font-semibold">
                         <Sparkles className="w-3 h-3 text-btn-primary" /> Autônomo
                       </span>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-container-bg border border-container-border/60 flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-white/40 dark:bg-white/[0.04] border border-white/30 dark:border-white/10 flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-semibold text-fg-primary">Google Calendar</p>
-                        <p className="text-[10px] text-fg-secondary">Conselheiro Temporal de Agenda</p>
+                        <p className="text-xs font-semibold text-slate-800 dark:text-white">Google Calendar</p>
+                        <p className="text-[10px] text-slate-600 dark:text-fg-secondary">Conselheiro Temporal de Agenda</p>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-semibold">
+                      <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-semibold">
                         <Check className="w-3 h-3" /> Sincronizado
                       </span>
                     </div>
@@ -656,37 +725,41 @@ export default function MagoDashboard() {
                 </div>
 
                 {/* Ações do Mago */}
-                <div className="p-5 rounded-3xl designcode-card space-y-3">
-                  <h3 className="text-xs font-bold text-fg-primary uppercase tracking-wider">Ações Arcanas</h3>
+                <div className="p-5 rounded-3xl bg-white/60 dark:bg-[#0B0B10]/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none space-y-3">
+                  <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Ações Arcanas</h3>
                   
                   <button 
                     onClick={() => setIsForgeOpen(true)}
-                    className="w-full py-3.5 px-4 rounded-2xl bg-btn-primary/15 hover:bg-btn-primary/25 border border-btn-primary/40 text-fg-primary text-xs font-bold flex items-center justify-between transition-all"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-btn-primary/15 hover:bg-btn-primary/25 border border-btn-primary/40 text-slate-800 dark:text-white text-xs font-bold flex items-center justify-between transition-all"
                   >
                     <span className="flex items-center gap-2">
                       <Wand2 className="w-4 h-4 text-btn-primary" />
                       Forjar Novo Avatar 3D (Tripo3D)
                     </span>
-                    <ChevronRight className="w-4 h-4 text-fg-tertiary" />
+                    <ChevronRight className="w-4 h-4 text-slate-500 dark:text-fg-tertiary" />
                   </button>
 
                   <button 
                     onClick={handleLogout}
-                    className="w-full py-3.5 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-bold flex items-center justify-between transition-all"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs font-bold flex items-center justify-between transition-all"
                   >
                     <span className="flex items-center gap-2">
-                      <LogOut className="w-4 h-4 text-rose-400" />
+                      <LogOut className="w-4 h-4 text-rose-500 dark:text-rose-400" />
                       Encerrar Sessão Arcana
                     </span>
-                    <ChevronRight className="w-4 h-4 text-rose-400/60" />
+                    <ChevronRight className="w-4 h-4 text-rose-500/60 dark:text-rose-400/60" />
                   </button>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
+          {/* Espaçador invisível no final do fluxo da página */}
+          <div className="h-28 w-full shrink-0 md:hidden" aria-hidden="true" />
+
         </div>
       </div>
+      </main>
 
     </div>
   );

@@ -53,6 +53,9 @@ public class ActionEntity {
     @Column(name = "controlled_by_rotation_id", length = 100)
     private String controlledByRotationId;
 
+    @Column(name = "lifecycle_type", length = 20)
+    private String lifecycleType = "ACTION";
+
     @Column(name = "is_completed")
     private Boolean isCompleted = false;
 
@@ -198,5 +201,16 @@ public class ActionEntity {
 
     public void setLastCompletedAt(OffsetDateTime lastCompletedAt) {
         this.lastCompletedAt = lastCompletedAt;
+    }
+
+    public String getLifecycleType() {
+        if (lifecycleType != null && !lifecycleType.isBlank()) {
+            return lifecycleType;
+        }
+        return Boolean.TRUE.equals(recurrenceEnabled) ? "HABIT" : "ACTION";
+    }
+
+    public void setLifecycleType(String lifecycleType) {
+        this.lifecycleType = lifecycleType;
     }
 }
