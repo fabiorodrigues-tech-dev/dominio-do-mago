@@ -1,36 +1,41 @@
 <div align="center">
 
- <img src="./avatar_mago.jpg" alt="Domínio do Mago Brand Archetype" width="160" style="border-radius: 50%; object-fit: cover;" />
-  # 🔮 DOMÍNIO DO MAGO
-  ### Cognitive Performance Engineering • Behavioral RPG • Progressive Web Architecture
+  <img src="./avatar_mago.jpg" alt="Domínio do Mago Brand Archetype" width="160" style="border-radius: 50%;" />
 
-  <p align="center">
+  <br />
+
+  <h1>🔮 DOMÍNIO DO MAGO</h1>
+  <h3>Cognitive Performance Engineering • Behavioral RPG • Progressive Web Architecture</h3>
+
+  <p>
     <strong>Uma plataforma PWA mobile-first que funde neurociência comportamental, alocação temporal e mecânicas de RPG com interface reativa de vidro líquido adaptativo.</strong>
   </p>
 
-  <br/>
+  <br />
 
   <!-- BADGES MATRIX -->
-  [![Runtime](https://img.shields.io/badge/Runtime-Next.js_14_SSR%2FCSR-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-  [![Language](https://img.shields.io/badge/Language-TypeScript_5.x_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![UI Engine](https://img.shields.io/badge/Design_System-Tailwind_Liquid_Glass-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-  <br/>
-  [![Core Service](https://img.shields.io/badge/Backend-Spring_Boot_3.x_LTS-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/)
-  [![Virtual Threads](https://img.shields.io/badge/JVM-Java_21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://oracle.com/java/)
-  [![Relational DB](https://img.shields.io/badge/Database-PostgreSQL_16_ACID-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-  [![Telemetry](https://img.shields.io/badge/Telemetry-Redis_7.x_Sorted_Sets-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
-  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
+  <p>
+    <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Runtime-Next.js_14_SSR%2FCSR-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Runtime" /></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/Language-TypeScript_5.x_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="Language" /></a>
+    <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Design_System-Tailwind_Liquid_Glass-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="UI Engine" /></a>
+  </p>
+  <p>
+    <a href="https://spring.io/"><img src="https://img.shields.io/badge/Backend-Spring_Boot_3.x_LTS-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Backend" /></a>
+    <a href="https://oracle.com/java/"><img src="https://img.shields.io/badge/JVM-Java_21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="JVM" /></a>
+    <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/Database-PostgreSQL_16_ACID-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="Database" /></a>
+    <a href="https://redis.io/"><img src="https://img.shields.io/badge/Telemetry-Redis_7.x_Sorted_Sets-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Telemetry" /></a>
+    <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" /></a>
+  </p>
 
-  <br/><br/>
+  <br />
 
-  <p align="center">
+  <p>
     O <strong>Domínio do Mago</strong> redefine a relação entre atenção humana e produtividade diária. Desenvolvido para erradicar a sobrecarga cognitiva inerente aos gerenciadores convencionais, o sistema substitui listas inertes por um ecossistema vivo de <em>Rituais Temporais</em>, <em>Árvores Elementais de Domínio</em> e um <em>Orquestrador Cognitivo de Interface Conversacional</em>.
   </p>
 
 </div>
 
 ---
-
 ## 🏛️ Topologia & Arquitetura do Ecossistema
 
 O sistema opera com separação estrita de domínios entre a camada de borda cliente (*Client Edge PWA*) e o núcleo de persistência/telemetria transacional (*Core Backend API*).
