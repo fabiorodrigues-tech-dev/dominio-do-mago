@@ -89,11 +89,11 @@ flowchart TD
 Diferente de interfaces web convencionais que aplicam opacidades genéricas, o motor visual do Domínio do Mago implementa um pipeline CSS dinâmico que preserva a profundidade de campo:
 * **Fórmula de Refração:** Combinação de tokens `backdrop-blur-xl` e `backdrop-blur-2xl` com valores de alfa calibrados individualmente para cada modo (`bg-white/60` a `bg-white/80` no Modo Claro para evitar contraste estourado; `bg-[#0B0B10]/80` a `bg-[#0D0D18]/95` no Modo Escuro).
 * **Isolamento de Canais Elementais:**
-  * 🔴 **Fogo (Fire):** Transição de foco, execução imediata e gasto de energia.
-  * 🔵 **Água (Water):** Fluxo regenerativo, rituais restauradores de Prana e pausas táticas.
-  * 🟢 **Terra (Earth):** Arquitetura mental, consistência de longo prazo e missões duráveis.
-  * ⚪ **Ar (Air):** Orquestração analítica, processamento do chat e refinamento estratégico.
-
+  * 🔥 **Fogo (`Ignis`):** Transição de foco imediato, execução ativa, *deep work* e gasto deliberado de energia.
+  * 💧 **Água (`Aqua`):** Fluxo regenerativo, rituais restauradores de Prana, descanso tático e alinhamento emocional.
+  * 🌿 **Terra (`Terra`):** Arquitetura mental sólida, sustentação de hábitos duradouros e missões de longo prazo.
+  * 🌪️ **Ar (`Ventus`):** Orquestração analítica, processamento cognitivo do chat e refinamento estratégico.
+    
 ### 2. Viewport Trapping & Estabilidade Mobile (Zero CLS)
 Para equiparar o PWA ao comportamento nativo de aplicações iOS/Android:
 * **Prevenção de Bounce de Janela:** A raiz da aplicação restringe o overflow global (`overflow-hidden`), transferindo o scroll exclusivamente para áreas delimitadas (`flex-1 overflow-y-auto`).
