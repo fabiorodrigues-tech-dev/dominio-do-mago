@@ -1,7 +1,6 @@
 <div align="center">
 
-<img src="./Mago_app.jpeg" alt="Domínio do Mago Archetype" width="160" style="border-radius: 36px; box-shadow: 0 12px 40px rgba(99, 102, 241, 0.35);" />
-
+<img src="avatar_mago.jpg" alt="Domínio do Mago Brand Archetype" width="160" style="border-radius: 50%;" />
   <br />
 
   <h1>🔮 DOMÍNIO DO MAGO</h1>
