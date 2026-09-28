@@ -1,7 +1,6 @@
 <div align="center">
 
   <img src="./avatar_mago.jpg" alt="Domínio do Mago Brand Archetype" width="160" style="border-radius: 28px; clip-path: inset(0 round 28px);" />
-  <br/><br/>
 
   # 🔮 DOMÍNIO DO MAGO
   ### Cognitive Performance Engineering • Behavioral RPG • Progressive Web Architecture
