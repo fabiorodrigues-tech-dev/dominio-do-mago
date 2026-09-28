@@ -1,20 +1,34 @@
 <div align="center">
 
-# 🧙‍♂️ DOMÍNIO DO MAGO
-### Sistema PWA Mobile-First de Gestão Cognitiva, Produtividade Arcana e Orquestração por IA
+  <img src="./avatar_mago.jpg" alt="Domínio do Mago Brand Archetype" width="160" style="border-radius: 36px; box-shadow: 0 12px 40px rgba(99, 102, 241, 0.35); border: 2px solid rgba(255, 255, 255, 0.1);" />
 
-[![Next.js](https://img.shields.io/badge/Next.js-14.x_(App_Router)-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4_Liquid_Glass-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x_LTS-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/)
-[![Java](https://img.shields.io/badge/Java-21_Virtual_Threads-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://oracle.com/java/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_ACID-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7.x_Telemetry-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
+  <br/><br/>
 
-<br/>
+  # 🔮 DOMÍNIO DO MAGO
+  ### Cognitive Performance Engineering • Behavioral RPG • Progressive Web Architecture
 
-**Domínio do Mago** é uma plataforma distribuída e progressiva (PWA) projetada sob a ótica de *Behavioral Game Design* e *Cognitive Ergonomics*. Substitui a fricção de organizadores tradicionais por uma esteira imersiva de micro-hábitos e alocação de blocos temporais (Time-Blocking) governada por um Orquestrador Conversacional e arquitetura reativa full-stack.
+  <p align="center">
+    <strong>Uma plataforma PWA mobile-first que funde neurociência comportamental, alocação temporal e mecânicas de RPG com interface reativa de vidro líquido adaptativo.</strong>
+  </p>
+
+  <br/>
+
+  <!-- BADGES MATRIX -->
+  [![Runtime](https://img.shields.io/badge/Runtime-Next.js_14_SSR%2FCSR-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+  [![Language](https://img.shields.io/badge/Language-TypeScript_5.x_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![UI Engine](https://img.shields.io/badge/Design_System-Tailwind_Liquid_Glass-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+  <br/>
+  [![Core Service](https://img.shields.io/badge/Backend-Spring_Boot_3.x_LTS-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/)
+  [![Virtual Threads](https://img.shields.io/badge/JVM-Java_21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://oracle.com/java/)
+  [![Relational DB](https://img.shields.io/badge/Database-PostgreSQL_16_ACID-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+  [![Telemetry](https://img.shields.io/badge/Telemetry-Redis_7.x_Sorted_Sets-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
+
+  <br/><br/>
+
+  <p align="center">
+    O <strong>Domínio do Mago</strong> redefine a relação entre atenção humana e produtividade diária. Desenvolvido para erradicar a sobrecarga cognitiva inerente aos gerenciadores convencionais, o sistema substitui listas inertes por um ecossistema vivo de <em>Rituais Temporais</em>, <em>Árvores Elementais de Domínio</em> e um <em>Orquestrador Cognitivo de Interface Conversacional</em>.
+  </p>
 
 </div>
 
