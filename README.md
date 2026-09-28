@@ -1,50 +1,37 @@
-# **Domínio do Mago (Wizard's Domain)**
-Gamified Time & Task Management Progressive Web Application
+# 🧙‍♂️ Domínio do Mago (Wizard's Domain)
+
+> **An Enterprise-Grade, Gamified Productivity & Time Management PWA**
+
+[![Next.js](https://img.shields.io/badge/Next.js-14.x-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=spring)](https://spring.io/)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=java)](https://oracle.com/java/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql)](https://postgresql.org/)
+
+**Domínio do Mago** is not just a to-do list; it is a highly scalable, offline-capable Progressive Web Application (PWA) that leverages behavioral psychology and RPG mechanics to eliminate cognitive friction. Engineered with a strict mobile-first philosophy, it features native-like Glassmorphism interfaces, complex state management, and a high-performance Java/Spring Boot backend architecture.
 
 ---
 
-## **Executive Overview**
-**Domínio do Mago** is an enterprise-grade Progressive Web Application (PWA) designed to transform productivity routines into an engaging role-playing game (RPG) experience. By applying battle-tested game design mechanics to daily task management, time tracking, and habit formation, the platform directly addresses cognitive fatigue and modern productivity friction.
+## 🏗️ System Architecture & Data Flow
 
-Built with a decoupled, high-performance architecture, the project demonstrates modern web development practices including offline-first storage patterns, resilient API integration, server-side rendering, and responsive UI primitives optimized for mobile viewports.
+The platform relies on a decoupled architecture, separating the high-fidelity presentation layer from the core business logic and state persistence mechanisms.
 
----
-
-## **Core Features**
-- **Gamified Productivity Engine:** Convert real-world tasks into quests, earning experience points (XP), mana, and gold to unlock avatar upgrades, domains, and spell rewards.
-- **Focus Mana Timer (Pomodoro Variant):** Integrated focus timer that converts deep-work intervals into channeled spell power, complete with custom audio cues and session telemetry.
-- **Offline-First PWA Capabilities:** Full Progressive Web App manifest implementation using service workers, caching strategies, and optimistic local database synchronization via IndexedDB.
-- **Real-time Analytics & Domain Progress:** High-impact metrics dashboards tracking habit consistency, velocity trends, and skill tree progressions over time.
-- **Dynamic Skill Trees:** Flexible categorization allowing users to attribute completed work towards specific personal mastery paths (e.g., *Frontend Sorcery*, *Backend Alchemy*, *Mindfulness*).
-
----
-
-## **Technology Stack & System Architecture**
-
-### **Technical Stack Matrix**
-| Layer | Technology | Key Capabilities & Justification |
-| :--- | :--- | :--- |
-| **Frontend Framework** | Next.js (App Router) | Server-Side Rendering (SSR), React Server Components, optimized bundle delivery, and built-in routing. |
-| **UI & Styling** | Tailwind CSS + Radix UI | Utility-first, accessible design system primitives with ultra-low CSS footprint and custom responsive themes. |
-| **PWA Infrastructure** | Serwist / Next-PWA | Custom service worker registration, background sync, and offline asset caching. |
-| **Backend API** | Spring Boot 3.x (Java 21) | Robust RESTful APIs, Spring Security, JPA/Hibernate ORM, and enterprise-grade dependency injection. |
-| **Persistence** | PostgreSQL + Redis | Relational data persistence backed by Redis in-memory layer for session management and rate limiting. |
-
-### **System Architecture (High-Level)**
-The project enforces a strict boundary separation between the presentation application and the core business logic engine, communicating via a secured REST API.
+### High-Level Topology
 
 ```text
-+-----------------------+          HTTPS / JWT           +-----------------------+
-|  CLIENT LAYER (PWA)   | -----------------------------> |  BACKEND LAYER (API)  |
-|                       | <----------------------------- |                       |
-|  - Next.js SSR/CSR    |                                |  - Spring Boot        |
-|  - Tailwind + Framer  |                                |  - REST Controllers   |
-|  - Service Worker     |                                |  - Domain Logic       |
-|  - IndexedDB (Cache)  |                                |  - Spring Data JPA    |
-+-----------------------+                                +-----------------------+
-                                                                 |       |
-                                                          +------v-+   +-v------+
-                                                          |  Post- |   | Redis  |
-                                                          | greSQL |   | Cache  |
-                                                          +--------+   +--------+
+    [ Mobile PWA / Web Client ]
+              │
+              │  (CSR / Optimistic UI Updates via React Query)
+              ▼
+    [ Next.js Server (BFF) ] ── SSR / API Routes ──┐
+              │                                    │
+              │  (JWT Secured REST / HTTPS)        │
+              ▼                                    │
+    [ Spring Boot 3 API ] ◄────────────────────────┘
+    (Java 21 + Hibernate)
+              │
+      ┌───────┴────────┐
+      ▼                ▼
+[ PostgreSQL ]    [ Redis Cache ]
+ (ACID State)      (Sessions/RL)
 ```
