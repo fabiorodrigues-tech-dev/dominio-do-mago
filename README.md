@@ -24,45 +24,46 @@
 
 O sistema opera com separação estrita de domínios entre a camada de borda cliente (*Client Edge PWA*) e o núcleo de persistência/telemetria transacional (*Core Backend API*).
 
+```mermaid
+flowchart TD
+    subgraph ClientEdge["CLIENT EDGE (PWA / UX)"]
+        direction TB
+        subgraph NextRuntime["Next.js 14 Runtime"]
+            A1["App Router (SSR/CSR)"]
+            A2["Glassmorphism UI Engine"]
+            A3["Viewport 100dvh Lock"]
+        end
+        subgraph ClientStorage["Client Storage & Workers"]
+            B1["Web Workers & PWA Manifest"]
+            B2["Offline-First IndexedDB Cache"]
+            B3["Optimistic UI Engine"]
+        end
+    end
 
-```
+    subgraph CoreEngine["CORE ENGINE (SPRING BOOT 3.x)"]
+        direction TB
+        C1["Java 21 (Virtual Threads / Project Loom)"]
+        C2["Stateless Security Filter Chain (JWT)"]
+        C3["ADR-000 Contract Engine (Gestão de Prana & XP)"]
+    end
 
-```
-                  ┌──────────────────────────────────────┐
-                  │        CLIENT EDGE (PWA / UX)        │
-                  └──────────────────┬───────────────────┘
-                                     │
-             ┌───────────────────────┴───────────────────────┐
-             ▼                                               ▼
-┌──────────────────────────┐                    ┌──────────────────────────┐
-│     Next.js Runtime      │                    │     Client Storage       │
-│  • App Router (SSR/CSR)  │                    │  • Web Workers & PWA     │
-│  • Glassmorphism Tokens  │                    │  • Offline-First Cache   │
-│  • Viewport 100dvh Lock  │                    │  • Optimistic UI Engine  │
-└────────────┬─────────────┘                    └────────────┬─────────────┘
-             │                                               │
-             └───────────────────────┬───────────────────────┘
-                                     │
-                                     │ HTTPS / Bearer JWT (mTLS Ready)
-                                     ▼
-                  ┌──────────────────────────────────────┐
-                  │       CORE ENGINE (SPRING BOOT)      │
-                  │  • Java 21 (Virtual Threads / Loom)  │
-                  │  • Stateless Security Filter Chain   │
-                  │  • ADR-000 Contract Engine (Prana)   │
-                  └──────────────────┬───────────────────┘
-                                     │
-             ┌───────────────────────┴───────────────────────┐
-             ▼                                               ▼
-┌──────────────────────────┐                    ┌──────────────────────────┐
-│     PostgreSQL 16 DB     │                    │     Redis Cache Node     │
-│  • Transações ACID       │                    │  • Telemetria & Ranks    │
-│  • Histórico de Rituais  │                    │  • Rate Limiting & Lock  │
-│  • Ledgers de XP e Nível │                    │  • Ephemeral Chat Cache  │
-└──────────────────────────┘                    └──────────────────────────┘
+    subgraph Persistence["PERSISTENCE & TELEMETRY LAYER"]
+        direction LR
+        D1[("PostgreSQL 16\n• Transações ACID\n• Histórico de Rituais\n• Ledgers de XP & Nível")]
+        D2[("Redis 7.x Cache\n• Telemetria & Ranks\n• Distributed Rate Limiting\n• Ephemeral Chat Cache")]
+    end
 
-```
+    ClientEdge -->|"HTTPS / Bearer JWT (mTLS Ready)"| CoreEngine
+    CoreEngine -->|"JPA / Hibernate"| D1
+    CoreEngine -->|"Lettuce Reactive Client"| D2
 
+    classDef client fill:#1E1B4B,stroke:#6366F1,stroke-width:1.5px,color:#FFFFFF;
+    classDef backend fill:#064E3B,stroke:#10B981,stroke-width:1.5px,color:#FFFFFF;
+    classDef db fill:#1F2937,stroke:#38BDF8,stroke-width:1.5px,color:#FFFFFF;
+
+    class NextRuntime,ClientStorage client;
+    class CoreEngine backend;
+    class D1,D2 db;
 ```
 
 ---
