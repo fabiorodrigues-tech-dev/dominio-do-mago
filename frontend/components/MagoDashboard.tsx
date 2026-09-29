@@ -35,10 +35,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api, { getUserDashboardData, DashboardData } from '../services/api';
 import { useNavigation, NavigationTab } from '../contexts/NavigationContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function MagoDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const { activeTab, setActiveTab } = useNavigation();
+  const { userName } = useAuth();
   const [isForgeOpen, setIsForgeOpen] = useState(false);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<LeaderboardPeriod>('week');
   const ritualTimer = useRitualTimer();
@@ -330,7 +332,7 @@ export default function MagoDashboard() {
                       {/* Legenda inferior do Avatar */}
                       <div className="absolute bottom-3.5 left-4 right-4 z-20 flex justify-between items-end pointer-events-none">
                         <div>
-                          <h1 className="text-base font-bold text-slate-800 dark:text-white drop-shadow-md">Fábio Rodrigues</h1>
+                          <h1 className="text-base font-bold text-slate-800 dark:text-white drop-shadow-md">{userName || 'Mago Aspirante'}</h1>
                           <p className="text-xs text-slate-600 dark:text-fg-secondary font-medium drop-shadow-sm">Mago Supremo da Produtividade</p>
                         </div>
                         <span className="text-[10px] text-fg-tertiary font-mono bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-container-border">
@@ -614,11 +616,11 @@ export default function MagoDashboard() {
                 transition={{ duration: 0.2 }}
                 className="w-full pb-32"
               >
-                <ArcaneLeaderboard 
+                  <ArcaneLeaderboard 
                   period={leaderboardPeriod}
                   onPeriodChange={setLeaderboardPeriod}
                   podium={[
-                    { rank: 1, name: 'Fábio Rodrigues', points: dashboardData?.globalXp || 2500, element: 'fire', flag: '🇵🇹', isCurrentUser: true },
+                    { rank: 1, name: userName || 'Mago Aspirante', points: dashboardData?.globalXp || 2500, element: 'fire', flag: '🇵🇹', isCurrentUser: true },
                     { rank: 2, name: 'Merlin_99', points: 2100, element: 'air', flag: '🇬🇧' },
                     { rank: 3, name: 'Gandalf', points: 1850, element: 'earth', flag: '🇳🇿' },
                   ]}
@@ -652,7 +654,7 @@ export default function MagoDashboard() {
                 {/* Card de Identidade do Mago */}
                 <div className="w-full mb-8">
                   <ArcaneProfileStats 
-                    name="Fábio Rodrigues"
+                    name={userName || 'Mago Aspirante'}
                     avatarUrl={dashboardData?.avatarGlbUrl ? undefined : undefined} // Not using 3d model URL as 2D avatar for now
                     level={dashboardData?.arcanoLevel || 5}
                     xpCurrent={dashboardData?.globalXp || 2500}

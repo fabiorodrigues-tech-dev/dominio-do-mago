@@ -107,7 +107,7 @@ export default function LoginPage() {
 
         // Salva token e atualiza estado global no AuthContext
         if (data.token) {
-          login(data.token, data.userId || data.user?.id || "mago_default");
+          login(data.token, data.userId || data.user?.id || "mago_default", data.username || data.user?.name || "Mago Aspirante");
         }
 
         // Redireciona para o Sanctum / Dashboard
