@@ -18,6 +18,13 @@ export interface UserRecord {
   earthElement: number;
   airElement: number;
   avatarGlbUrl?: string;
+  level?: number;
+  currentXp?: number;
+  targetXp?: number;
+  activeElement?: string;
+  nenCategory?: string;
+  auraColor?: string;
+  ritualsCompleted?: number;
   createdAt: string;
 }
 
@@ -34,10 +41,19 @@ export interface UserPublicProfile {
   earthElement: number;
   airElement: number;
   avatarGlbUrl?: string;
+  level?: number;
+  currentXp?: number;
+  targetXp?: number;
+  activeElement?: string;
+  nenCategory?: string;
+  auraColor?: string;
+  ritualsCompleted?: number;
   createdAt: string;
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dominio-do-mago-arcane-secret-key-2026-v1';
+const LOCAL_STORAGE_DIR = path.join(process.cwd(), '.data');
+const LOCAL_STORAGE_PATH = path.join(LOCAL_STORAGE_DIR, 'users.json');
 const TMP_STORAGE_PATH = path.join('/tmp', 'dominio_mago_users.json');
 
 // Global in-memory storage to survive module reloads and container warm starts
@@ -49,10 +65,15 @@ declare global {
 function getInitialUsers(): Map<string, UserRecord> {
   const users = new Map<string, UserRecord>();
 
-  // 1. Tenta restaurar do arquivo temporário se existir
+  // 1. Tenta restaurar do arquivo temporário ou do local storage
   try {
-    if (fs.existsSync(TMP_STORAGE_PATH)) {
-      const data = fs.readFileSync(TMP_STORAGE_PATH, 'utf-8');
+    let data = '';
+    if (fs.existsSync(LOCAL_STORAGE_PATH)) {
+      data = fs.readFileSync(LOCAL_STORAGE_PATH, 'utf-8');
+    } else if (fs.existsSync(TMP_STORAGE_PATH)) {
+      data = fs.readFileSync(TMP_STORAGE_PATH, 'utf-8');
+    }
+    if (data) {
       const parsed: UserRecord[] = JSON.parse(data);
       for (const u of parsed) {
         users.set(u.email.toLowerCase(), u);
@@ -64,22 +85,29 @@ function getInitialUsers(): Map<string, UserRecord> {
 
   // 2. Pre-seed Mestre Arcano e Mago Padrão caso não existam
   if (!users.has('fabioandre777@gmail.com')) {
-    // Hash síncrono para "Magoarquiteto"
+    // Hash síncrono para "Magosupremo" (Senha solicitada pelo usuário)
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync('Magoarquiteto', salt);
+    const hash = bcrypt.hashSync('Magosupremo', salt);
     users.set('fabioandre777@gmail.com', {
-      id: '64bc950d-d079-4e44-b006-edb64aa194bc',
-      name: 'Fábio Rodrigues (Mestre Arcano)',
+      id: 'admin_1',
+      name: 'Fábio Rodrigues',
       email: 'fabioandre777@gmail.com',
       passwordHash: hash,
-      arcanoLevel: 42,
+      arcanoLevel: 1,
       pranaLevel: 100,
-      globalXp: 15420,
-      auraRadius: 85,
-      fireElement: 90,
-      waterElement: 75,
-      earthElement: 80,
-      airElement: 95,
+      globalXp: 0,
+      auraRadius: 15,
+      fireElement: 25,
+      waterElement: 25,
+      earthElement: 25,
+      airElement: 25,
+      level: 1,
+      currentXp: 0,
+      targetXp: 100,
+      activeElement: 'fire',
+      nenCategory: 'Transmuter',
+      auraColor: '#F97316',
+      ritualsCompleted: 0,
       avatarGlbUrl: '/avatar_fabio.glb',
       createdAt: new Date().toISOString(),
     });
@@ -95,12 +123,19 @@ function getInitialUsers(): Map<string, UserRecord> {
       passwordHash: hash,
       arcanoLevel: 1,
       pranaLevel: 100,
-      globalXp: 120,
+      globalXp: 0,
       auraRadius: 10,
       fireElement: 25,
       waterElement: 25,
       earthElement: 25,
       airElement: 25,
+      level: 1,
+      currentXp: 0,
+      targetXp: 100,
+      activeElement: 'fire',
+      nenCategory: 'Transmuter',
+      auraColor: '#F97316',
+      ritualsCompleted: 0,
       createdAt: new Date().toISOString(),
     });
   }
@@ -117,9 +152,20 @@ const usersMap = globalThis.__DOMINIO_MAGO_USERS__;
 function persistUsersToFile() {
   try {
     const list = Array.from(usersMap.values());
-    fs.writeFileSync(TMP_STORAGE_PATH, JSON.stringify(list, null, 2), 'utf-8');
-  } catch {
-    // Em alguns ambientes serverless somente /tmp é gravável; ignorar se falhar
+    const data = JSON.stringify(list, null, 2);
+    
+    if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
+      fs.mkdirSync(LOCAL_STORAGE_DIR, { recursive: true });
+    }
+    fs.writeFileSync(LOCAL_STORAGE_PATH, data, 'utf-8');
+  } catch (err) {
+    // Em alguns ambientes serverless (Vercel) somente /tmp é gravável
+    try {
+      const list = Array.from(usersMap.values());
+      fs.writeFileSync(TMP_STORAGE_PATH, JSON.stringify(list, null, 2), 'utf-8');
+    } catch (tmpErr) {
+      console.error('[AuthStorage] Erro ao gravar usuários no /tmp:', tmpErr);
+    }
   }
 }
 
@@ -163,6 +209,13 @@ export async function createUser(data: {
     waterElement: 25,
     earthElement: 25,
     airElement: 25,
+    level: 1,
+    currentXp: 0,
+    targetXp: 100,
+    activeElement: 'fire',
+    nenCategory: 'Transmuter',
+    auraColor: '#F97316',
+    ritualsCompleted: 0,
     createdAt: new Date().toISOString(),
   };
 
@@ -197,6 +250,13 @@ export async function updateUserPassword(email: string, newPassword: string): Pr
       waterElement: 25,
       earthElement: 25,
       airElement: 25,
+      level: 1,
+      currentXp: 0,
+      targetXp: 100,
+      activeElement: 'fire',
+      nenCategory: 'Transmuter',
+      auraColor: '#F97316',
+      ritualsCompleted: 0,
       createdAt: new Date().toISOString(),
     };
     usersMap.set(normalizedEmail, newUser);
@@ -249,6 +309,13 @@ export function toPublicProfile(user: UserRecord): UserPublicProfile {
     earthElement: user.earthElement,
     airElement: user.airElement,
     avatarGlbUrl: user.avatarGlbUrl,
+    level: user.level || 1,
+    currentXp: user.currentXp || 0,
+    targetXp: user.targetXp || 100,
+    activeElement: user.activeElement || 'fire',
+    nenCategory: user.nenCategory || 'Transmuter',
+    auraColor: user.auraColor || '#F97316',
+    ritualsCompleted: user.ritualsCompleted || 0,
     createdAt: user.createdAt,
   };
 }

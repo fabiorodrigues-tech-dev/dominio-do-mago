@@ -188,7 +188,7 @@ export default function MagoDashboard() {
             <div className="relative flex flex-col items-center justify-center w-8 h-8 rounded-xl bg-btn-primary/20 border border-btn-primary/30">
               <span className="text-[8px] font-bold uppercase tracking-widest text-slate-700 dark:text-white/40 leading-none">LV</span>
               <span className="text-[12px] font-extrabold text-slate-700 dark:text-white leading-none">
-                {dashboardData?.arcanoLevel ?? 10}
+                {dashboardData?.level ?? dashboardData?.arcanoLevel ?? 1}
               </span>
               {/* Online dot */}
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-[#0B0B10]" />
@@ -459,14 +459,14 @@ export default function MagoDashboard() {
                           XP Global da Aura
                         </span>
                         <span className="font-mono font-bold text-btn-primary text-sm">
-                          {dashboardData?.globalXp || 2500} XP
+                          {dashboardData?.currentXp ?? dashboardData?.globalXp ?? 0} XP
                         </span>
                       </div>
 
                       <div className="h-3 w-full bg-black/60 rounded-full overflow-hidden border border-container-border/40 shadow-inner p-0.5">
                         <motion.div 
                           initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, Math.max(10, ((dashboardData?.globalXp || 2500) % 500) / 5))}%` }}
+                          animate={{ width: `${Math.min(100, Math.max(0, ((dashboardData?.currentXp ?? dashboardData?.globalXp ?? 0) / (dashboardData?.targetXp || 100)) * 100))}%` }}
                           transition={{ duration: 1.5, ease: "easeOut" }}
                           className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                         />
@@ -492,8 +492,8 @@ export default function MagoDashboard() {
                         </span>
                       </div>
                       <ProductivityAnalytics 
-                        tasksCompleted={dashboardData?.fireElement ? Math.floor(dashboardData.fireElement / 10) : 12}
-                        totalDurationLabel="2h 15m"
+                        tasksCompleted={dashboardData?.ritualsCompleted ?? (dashboardData?.fireElement ? Math.floor(dashboardData.fireElement / 10) : 0)}
+                        totalDurationLabel="0h 0m"
                         series={{
                           fire: [
                             { label: "8h", minutes: Math.floor((dashboardData?.fireElement || 78) * 0.3) },
@@ -620,7 +620,7 @@ export default function MagoDashboard() {
                   period={leaderboardPeriod}
                   onPeriodChange={setLeaderboardPeriod}
                   podium={[
-                    { rank: 1, name: userName || 'Mago Aspirante', points: dashboardData?.globalXp || 2500, element: 'fire', flag: '🇵🇹', isCurrentUser: true },
+                    { rank: 1, name: userName || 'Mago Aspirante', points: dashboardData?.currentXp ?? dashboardData?.globalXp ?? 0, element: 'fire', flag: '🇵🇹', isCurrentUser: true },
                     { rank: 2, name: 'Merlin_99', points: 2100, element: 'air', flag: '🇬🇧' },
                     { rank: 3, name: 'Gandalf', points: 1850, element: 'earth', flag: '🇳🇿' },
                   ]}
@@ -656,24 +656,24 @@ export default function MagoDashboard() {
                   <ArcaneProfileStats 
                     name={userName || 'Mago Aspirante'}
                     avatarUrl={dashboardData?.avatarGlbUrl ? undefined : undefined} // Not using 3d model URL as 2D avatar for now
-                    level={dashboardData?.arcanoLevel || 5}
-                    xpCurrent={dashboardData?.globalXp || 2500}
-                    xpNext={3000}
-                    points={dashboardData?.pranaLevel || 100}
-                    worldRank={42}
+                    level={dashboardData?.level ?? dashboardData?.arcanoLevel ?? 1}
+                    xpCurrent={dashboardData?.currentXp ?? dashboardData?.globalXp ?? 0}
+                    xpNext={dashboardData?.targetXp ?? 100}
+                    points={dashboardData?.pranaLevel ?? 100}
+                    worldRank={0}
                     localRank={1}
                     badges={[
                       { id: '1', element: 'fire', locked: false },
-                      { id: '2', element: 'water', locked: false },
-                      { id: '3', element: 'earth', locked: false },
+                      { id: '2', element: 'water', locked: true },
+                      { id: '3', element: 'earth', locked: true },
                       { id: '4', element: 'air', locked: true },
                       { id: '5', element: 'fire', locked: true },
                       { id: '6', locked: true },
                     ]}
-                    ritualsThisMonth={42}
+                    ritualsThisMonth={dashboardData?.ritualsCompleted ?? 0}
                     ritualsGoal={50}
-                    grimoiresCreated={7}
-                    ritualsWon={128}
+                    grimoiresCreated={0}
+                    ritualsWon={0}
                     weeklyPerformance={[
                       { label: 'Seg', value: 40, element: 'fire' },
                       { label: 'Ter', value: 70, element: 'earth' },

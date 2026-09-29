@@ -107,6 +107,9 @@ export default function LoginPage() {
 
         // Salva token e atualiza estado global no AuthContext
         if (data.token) {
+          if (data.user) {
+            localStorage.setItem("mago_user", JSON.stringify(data.user));
+          }
           login(data.token, data.userId || data.user?.id || "mago_default", data.username || data.user?.name || "Mago Aspirante");
         }
 

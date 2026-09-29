@@ -147,6 +147,13 @@ export interface DashboardData {
   hp?: number;
   energy?: number;
   pranaLevel?: number;
+  level?: number;
+  currentXp?: number;
+  targetXp?: number;
+  activeElement?: string;
+  nenCategory?: string;
+  auraColor?: string;
+  ritualsCompleted?: number;
 }
 
 export const getUserDashboardData = async (): Promise<DashboardData> => {
