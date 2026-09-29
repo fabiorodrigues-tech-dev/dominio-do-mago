@@ -1,178 +1,339 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Key, Mail, User, ShieldAlert } from 'lucide-react';
-import { loginUser, registerUser } from '../../services/api';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { 
+  Sparkles, KeyRound, Mail, ArrowRight, ShieldCheck, 
+  Flame, Droplets, Mountain, Wind, User, CheckCircle2, 
+  AlertCircle, ArrowLeft 
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+
+type AuthMode = "LOGIN" | "REGISTER" | "FORGOT";
 
 export default function LoginPage() {
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState<AuthMode>("LOGIN");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [feedback, setFeedback] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
+
+  // Se já estiver autenticado, redireciona ao Sanctum
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('mago_token');
-      localStorage.removeItem('nexus_token');
-      localStorage.removeItem('nexus_userId');
-      localStorage.removeItem('mago_userId');
+    if (isAuthenticated) {
+      router.push("/");
     }
-  }, []);
+  }, [isAuthenticated, router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    try {
-      const { token, userId } = await loginUser(email, password);
-      login(token, userId);
-    } catch (err: any) {
-      setError(err.message || 'Falha ao acessar o Grimório.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setFeedback(null);
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
     try {
-      await registerUser(username, email, password);
-      setActiveTab('login');
-      setError('Aliança forjada! Agora acesse seu Grimório.');
+      if (mode === "REGISTER") {
+        if (password !== confirmPassword) {
+          throw new Error("As chaves rúnicas (senhas) não coincidem.");
+        }
+
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Falha na iniciação do Mago.");
+        }
+
+        setFeedback({
+          message: data.message || "Iniciação concluída! Seu arquétipo foi forjado. Acesse agora.",
+          type: "success",
+        });
+
+        // Alterna para o modo de login mantendo as credenciais
+        setMode("LOGIN");
+      } else if (mode === "FORGOT") {
+        const res = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Falha ao solicitar restauração.");
+        }
+
+        setFeedback({
+          message: data.message || `Instruções de acesso enviadas para ${email}.`,
+          type: "success",
+        });
+      } else {
+        // LOGIN
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Credenciais não autorizadas.");
+        }
+
+        setFeedback({
+          message: "Acesso autorizado ao Sanctum. Despertando auras...",
+          type: "success",
+        });
+
+        // Salva token e atualiza estado global no AuthContext
+        if (data.token) {
+          login(data.token, data.userId || data.user?.id || "mago_default");
+        }
+
+        // Redireciona para o Sanctum / Dashboard
+        setTimeout(() => {
+          router.push("/");
+        }, 600);
+      }
     } catch (err: any) {
-      console.error("Erro capturado no UI:", err);
-      const backendMessage = err.message || err.response?.data?.message;
-      setError(backendMessage || 'Erro de conexão com o servidor.');
+      setFeedback({
+        message: err.message || "Erro de conexão com o portal arcano.",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none" />
+    <main className="relative min-h-[100dvh] w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-[#05050A] text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
+      
+      {/* 🌌 Atmosfera Arcana: Luzes Difusas de Fundo */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-indigo-600/25 via-purple-600/15 to-transparent blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-tl from-cyan-600/20 via-blue-600/10 to-transparent blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-40" />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md designcode-card shadow-2xl overflow-hidden relative z-10"
-      >
-        <div className="flex w-full border-b designcode-divider">
-          <button
-            onClick={() => { setActiveTab('login'); setError(''); }}
-            className={`flex-1 py-4 text-sm font-semibold tracking-wider transition-colors ${
-              activeTab === 'login' ? 'text-btn-primary border-b-2 border-btn-primary' : 'text-fg-secondary hover:text-fg-primary'
-            }`}
-          >
-            ACESSAR GRIMÓRIO
-          </button>
-          <button
-            onClick={() => { setActiveTab('register'); setError(''); }}
-            className={`flex-1 py-4 text-sm font-semibold tracking-wider transition-colors ${
-              activeTab === 'register' ? 'text-cyan-400 border-b-2 border-cyan-500' : 'text-fg-secondary hover:text-fg-primary'
-            }`}
-          >
-            FORJAR ALIANÇA
-          </button>
-        </div>
+      {/* 🛡️ Card Principal Liquid Glass */}
+      <div className="relative w-full max-w-[430px] z-10">
+        
+        <div className="relative rounded-3xl p-6 sm:p-8 backdrop-blur-2xl bg-[#0d0e1a]/70 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_20px_rgba(99,102,241,0.15)] ring-1 ring-white/5 transition-all">
+          
+          {/* Header com Avatar Oficial e Identidade */}
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="relative mb-3 group">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 opacity-60 blur-md group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-white/20 bg-slate-900 shadow-xl">
+                <Image
+                  src="/Mago_app.jpeg"
+                  alt="Domínio do Mago Archetype"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+                  priority
+                />
+              </div>
+            </div>
 
-        <div className="p-8">
-          <div className="flex justify-center mb-6">
-            <div className="p-3 rounded-full bg-container-bg border border-container-border shadow-inner">
-              <Sparkles className={`w-8 h-8 ${activeTab === 'login' ? 'text-btn-primary' : 'text-cyan-400'}`} />
+            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              Domínio do Mago
+              <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
+            </h1>
+            <p className="text-xs uppercase tracking-widest font-semibold text-slate-400 mt-1">
+              {mode === "LOGIN" && "Autenticação no Sanctum"}
+              {mode === "REGISTER" && "Iniciação de Novo Mago"}
+              {mode === "FORGOT" && "Restauração de Acesso"}
+            </p>
+          </div>
+
+          {/* Micro-Barra Elemental de Ambientação */}
+          <div className="grid grid-cols-4 gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 mb-6">
+            <div className="flex items-center justify-center gap-1 py-1 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-medium border border-orange-500/20">
+              <Flame className="w-3 h-3" /> Fogo
+            </div>
+            <div className="flex items-center justify-center gap-1 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 text-[10px] font-medium border border-cyan-500/20">
+              <Droplets className="w-3 h-3" /> Água
+            </div>
+            <div className="flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-medium border border-emerald-500/20">
+              <Mountain className="w-3 h-3" /> Terra
+            </div>
+            <div className="flex items-center justify-center gap-1 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 text-[10px] font-medium border border-indigo-500/20">
+              <Wind className="w-3 h-3" /> Ar
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-center text-fg-primary mb-2">
-            {activeTab === 'login' ? 'Bem-vindo de volta' : 'Inicie sua jornada'}
-          </h2>
-          <p className="text-center text-fg-secondary text-sm mb-8">
-            {activeTab === 'login' ? 'Aura estabilizada. O Orquestrador aguarda.' : 'Prepare sua mente para o domínio do foco.'}
-          </p>
+          {/* Feedback de Notificação / Sucesso / Erro */}
+          {feedback && (
+            <div
+              className={`mb-4 p-3 rounded-xl border text-xs flex items-start gap-2 animate-in fade-in duration-200 ${
+                feedback.type === "success"
+                  ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-200"
+                  : "bg-red-950/40 border-red-500/40 text-red-200"
+              }`}
+            >
+              {feedback.type === "success" ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              )}
+              <span>{feedback.message}</span>
+            </div>
+          )}
 
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className={`mb-6 p-3 rounded-xl border flex items-start gap-3 text-sm ${
-                  error.includes('sucesso') || error.includes('forjada')
-                    ? 'bg-emerald-900/30 border-emerald-500/30 text-emerald-200' 
-                    : 'bg-red-900/30 border-red-500/30 text-red-200'
-                }`}
-              >
-                <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
-                <p>{error}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <form onSubmit={activeTab === 'login' ? handleLogin : handleRegister} className="space-y-4">
+          {/* Formulário Dinâmico */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             
-            {activeTab === 'register' && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-tertiary" />
+            {/* Campo Nome (Apenas em Cadastro) */}
+            {mode === "REGISTER" && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-300 ml-1">Nome do Mago</label>
+                <div className="relative flex items-center">
+                  <User className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="text"
                     required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Nome de Mago (Username)"
-                    className="w-full bg-container-bg border border-container-border text-fg-primary placeholder:text-fg-tertiary rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ex: Mago Fábio"
+                    className="w-full bg-[#080914]/80 text-sm text-white placeholder-slate-500 pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all"
                   />
                 </div>
-              </motion.div>
+              </div>
             )}
 
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-tertiary" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Arcano"
-                className="w-full bg-container-bg border border-container-border text-fg-primary placeholder:text-fg-tertiary rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-btn-primary/50 focus:ring-1 focus:ring-btn-primary/50 transition-all"
-              />
+            {/* Input E-mail (Comum a todos) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-300 ml-1">E-mail</label>
+              <div className="relative flex items-center">
+                <Mail className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="mago@dominio.dev"
+                  className="w-full bg-[#080914]/80 text-sm text-white placeholder-slate-500 pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all"
+                />
+              </div>
             </div>
 
-            <div className="relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-tertiary" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Senha (Selo)"
-                className="w-full bg-container-bg border border-container-border text-fg-primary placeholder:text-fg-tertiary rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:border-btn-primary/50 focus:ring-1 focus:ring-btn-primary/50 transition-all"
-              />
-            </div>
+            {/* Input Senha (Login e Registro) */}
+            {mode !== "FORGOT" && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between ml-1">
+                  <label className="text-xs font-medium text-slate-300">Chave Rúnica (Senha)</label>
+                  {mode === "LOGIN" && (
+                    <button
+                      type="button"
+                      onClick={() => { setFeedback(null); setMode("FORGOT"); }}
+                      className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      Esqueceu a chave?
+                    </button>
+                  )}
+                </div>
+                <div className="relative flex items-center">
+                  <KeyRound className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-[#080914]/80 text-sm text-white placeholder-slate-500 pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+            )}
 
+            {/* Confirmação de Senha (Apenas em Registro) */}
+            {mode === "REGISTER" && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-300 ml-1">Confirme a Chave Rúnica</label>
+                <div className="relative flex items-center">
+                  <KeyRound className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-[#080914]/80 text-sm text-white placeholder-slate-500 pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Botão de Ação Primária */}
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all disabled:opacity-50 mt-4 cursor-pointer ${
-                activeTab === 'login'
-                  ? 'designcode-btn-primary shadow-md'
-                  : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-cyan-500/25'
-              }`}
+              className="relative w-full group overflow-hidden rounded-xl p-[1px] font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-50 mt-2 cursor-pointer"
             >
-              {isLoading ? 'Conjurando...' : activeTab === 'login' ? 'Entrar' : 'Registrar'}
+              <span className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 transition-all duration-300 group-hover:scale-105" />
+              <div className="relative flex items-center justify-center gap-2 py-3 px-4 rounded-[11px] bg-slate-950/40 backdrop-blur-sm transition-colors group-hover:bg-transparent">
+                {isLoading ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>
+                      {mode === "LOGIN" && "Entrar no Sanctum"}
+                      {mode === "REGISTER" && "Despertar Arquétipo"}
+                      {mode === "FORGOT" && "Enviar Instruções de Acesso"}
+                    </span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </div>
             </button>
           </form>
+
+          {/* Navegação entre Modos */}
+          <div className="mt-5 text-center">
+            {mode === "LOGIN" && (
+              <p className="text-xs text-slate-400">
+                Ainda não despertou seu arquétipo?{" "}
+                <button
+                  type="button"
+                  onClick={() => { setFeedback(null); setMode("REGISTER"); }}
+                  className="font-medium text-cyan-400 hover:text-cyan-300 underline underline-offset-4 decoration-cyan-400/30 cursor-pointer"
+                >
+                  Criar conta
+                </button>
+              </p>
+            )}
+
+            {(mode === "REGISTER" || mode === "FORGOT") && (
+              <button
+                type="button"
+                onClick={() => { setFeedback(null); setMode("LOGIN"); }}
+                className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Voltar ao login</span>
+              </button>
+            )}
+          </div>
+
+          {/* Rodapé com Telemetria */}
+          <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Next.js 14 • Serverless JWT</span>
+            </div>
+            <span className="font-mono text-slate-500">v1.0-LTS</span>
+          </div>
+
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </main>
   );
 }
