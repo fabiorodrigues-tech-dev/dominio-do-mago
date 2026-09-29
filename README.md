@@ -14,6 +14,7 @@
 
   <!-- BADGES MATRIX -->
   <p>
+    <a href="https://dominio-do-mago.vercel.app/login"><img src="https://img.shields.io/badge/Production-Vercel_Live-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Production" /></a>
     <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Runtime-Next.js_14_SSR%2FCSR-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Runtime" /></a>
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/Language-TypeScript_5.x_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="Language" /></a>
     <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Design_System-Tailwind_Liquid_Glass-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="UI Engine" /></a>
@@ -33,6 +34,8 @@
   </p>
 
 </div>
+
+> 🚀 **Live Demo:** Acesse a aplicação em produção em [dominio-do-mago.vercel.app/login](https://dominio-do-mago.vercel.app/login)
 
 ---
 ## 🏛️ Topologia & Arquitetura do Ecossistema
