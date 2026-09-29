@@ -61,10 +61,14 @@ export default function LoginPage() {
         // Alterna para o modo de login mantendo as credenciais
         setMode("LOGIN");
       } else if (mode === "FORGOT") {
+        if (password !== confirmPassword) {
+          throw new Error("As novas chaves rúnicas não coincidem.");
+        }
+
         const res = await fetch("/api/auth/forgot-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email, newPassword: password }),
         });
 
         const data = await res.json();
@@ -73,9 +77,16 @@ export default function LoginPage() {
         }
 
         setFeedback({
-          message: data.message || `Instruções de acesso enviadas para ${email}.`,
+          message: data.message || "Chave rúnica redefinida com sucesso!",
           type: "success",
         });
+
+        setTimeout(() => {
+          setMode("LOGIN");
+          setPassword("");
+          setConfirmPassword("");
+          setFeedback(null);
+        }, 1500);
       } else {
         // LOGIN
         const res = await fetch("/api/auth/login", {
@@ -225,39 +236,41 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Input Senha (Login e Registro) */}
-            {mode !== "FORGOT" && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between ml-1">
-                  <label className="text-xs font-medium text-slate-300">Chave Rúnica (Senha)</label>
-                  {mode === "LOGIN" && (
-                    <button
-                      type="button"
-                      onClick={() => { setFeedback(null); setMode("FORGOT"); }}
-                      className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
-                    >
-                      Esqueceu a chave?
-                    </button>
-                  )}
-                </div>
-                <div className="relative flex items-center">
-                  <KeyRound className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full bg-[#080914]/80 text-sm text-white placeholder-slate-500 pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all"
-                  />
-                </div>
+            {/* Input Senha (Login, Registro e Forgot) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-xs font-medium text-slate-300">
+                  {mode === "FORGOT" ? "Nova Chave Rúnica" : "Chave Rúnica (Senha)"}
+                </label>
+                {mode === "LOGIN" && (
+                  <button
+                    type="button"
+                    onClick={() => { setFeedback(null); setMode("FORGOT"); }}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                  >
+                    Esqueceu a chave?
+                  </button>
+                )}
               </div>
-            )}
+              <div className="relative flex items-center">
+                <KeyRound className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full bg-[#080914]/80 text-sm text-white placeholder-slate-500 pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all"
+                />
+              </div>
+            </div>
 
-            {/* Confirmação de Senha (Apenas em Registro) */}
-            {mode === "REGISTER" && (
+            {/* Confirmação de Senha */}
+            {(mode === "REGISTER" || mode === "FORGOT") && (
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300 ml-1">Confirme a Chave Rúnica</label>
+                <label className="text-xs font-medium text-slate-300 ml-1">
+                  {mode === "FORGOT" ? "Confirme a Nova Chave Rúnica" : "Confirme a Chave Rúnica"}
+                </label>
                 <div className="relative flex items-center">
                   <KeyRound className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
@@ -287,7 +300,7 @@ export default function LoginPage() {
                     <span>
                       {mode === "LOGIN" && "Entrar no Sanctum"}
                       {mode === "REGISTER" && "Despertar Arquétipo"}
-                      {mode === "FORGOT" && "Enviar Instruções de Acesso"}
+                      {mode === "FORGOT" && "Redefinir Chave Rúnica →"}
                     </span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>

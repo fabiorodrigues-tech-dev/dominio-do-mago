@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { updateUserPassword } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const email = (body.email || '').trim().toLowerCase();
+    const newPassword = body.newPassword;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
@@ -13,10 +15,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Em ambiente serverless/produção: simulação de despacho rúnico com sucesso garantido
+    if (!newPassword || newPassword.length < 6) {
+      return NextResponse.json(
+        { message: 'A nova chave rúnica deve ter no mínimo 6 caracteres.' },
+        { status: 400 }
+      );
+    }
+
+    await updateUserPassword(email, newPassword);
+
     return NextResponse.json(
       {
-        message: `Selo de restauração rúnica despachado pelas correntes etéreas para ${email}. Verifique sua caixa postal.`,
+        message: 'Chave rúnica redefinida com sucesso! Você já pode entrar com sua nova senha.',
         success: true,
       },
       { status: 200 }

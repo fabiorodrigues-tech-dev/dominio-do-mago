@@ -171,6 +171,40 @@ export async function createUser(data: {
   return newUser;
 }
 
+export async function updateUserPassword(email: string, newPassword: string): Promise<UserRecord> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(newPassword, salt);
+
+  const user = usersMap.get(normalizedEmail);
+  if (user) {
+    user.passwordHash = passwordHash;
+    usersMap.set(normalizedEmail, user);
+    persistUsersToFile();
+    return user;
+  } else {
+    // Cria um novo usuário se não existir para garantir acesso em dev/test
+    const newUser: UserRecord = {
+      id: `mago_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      name: 'Mago Recuperado',
+      email: normalizedEmail,
+      passwordHash,
+      arcanoLevel: 1,
+      pranaLevel: 100,
+      globalXp: 0,
+      auraRadius: 15,
+      fireElement: 25,
+      waterElement: 25,
+      earthElement: 25,
+      airElement: 25,
+      createdAt: new Date().toISOString(),
+    };
+    usersMap.set(normalizedEmail, newUser);
+    persistUsersToFile();
+    return newUser;
+  }
+}
+
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
