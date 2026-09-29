@@ -10,7 +10,8 @@ interface AuthContextType {
   token: string | null;
   userId: string | null;
   userName: string;
-  login: (token: string, userId: string, userName?: string) => void;
+  user: any | null;
+  login: (token: string, userId: string, userName?: string, userData?: any) => void;
   logout: () => void;
 }
 
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("Mago Aspirante");
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -39,7 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedToken && !isJwtExpired(storedToken)) {
         setToken(storedToken);
         setUserId(storedUserId || '64bc950d-d079-4e44-b006-edb64aa194bc');
-        setUserName(localStorage.getItem('mago_user') || 'Mago Aspirante');
+        
+        const rawUserData = localStorage.getItem('mago_user');
+        if (rawUserData) {
+          try {
+            const parsedUser = JSON.parse(rawUserData);
+            setUser(parsedUser);
+            setUserName(parsedUser.name || "Mago Aspirante");
+          } catch (e) {
+            setUserName(rawUserData || "Mago Aspirante");
+          }
+        }
         setIsAuthenticated(true);
       } else {
         if (storedToken) {
@@ -52,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(null);
         setUserId(null);
         setUserName("Mago Aspirante");
+        setUser(null);
         setIsAuthenticated(false);
       }
     } catch {
@@ -61,14 +74,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-    const login = (newToken: string, newUserId: string, newUserName?: string) => {
+    const login = (newToken: string, newUserId: string, newUserName?: string, userData?: any) => {
     try {
       localStorage.setItem('mago_token', newToken);
       localStorage.setItem('nexus_token', newToken);
       localStorage.setItem('nexus_userId', newUserId);
       localStorage.setItem('mago_userId', newUserId);
-      if (newUserName) {
-        localStorage.setItem('mago_user', newUserName);
+      if (userData) {
+        localStorage.setItem('mago_user', JSON.stringify(userData));
+        setUser(userData);
+        if (userData.name) setUserName(userData.name);
+      } else if (newUserName) {
+        // Fallback legado
+        setUserName(newUserName);
       }
       if (typeof document !== 'undefined') {
         document.cookie = `mago_token=${encodeURIComponent(newToken)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
@@ -79,7 +97,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setToken(newToken);
     setUserId(newUserId);
-    if (newUserName) setUserName(newUserName);
     setIsAuthenticated(true);
     router.push('/');
   };
@@ -101,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUserId(null);
     setUserName("Mago Aspirante");
+    setUser(null);
     setIsAuthenticated(false);
     router.push('/login');
   };
@@ -118,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, token, userId, userName, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, token, userId, userName, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -134,6 +152,7 @@ export function useAuth() {
       token: null,
       userId: null,
       userName: "Mago Aspirante",
+      user: null,
       login: () => {},
       logout: () => {},
     };

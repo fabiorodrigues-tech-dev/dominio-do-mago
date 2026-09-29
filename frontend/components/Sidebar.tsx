@@ -23,7 +23,9 @@ import { getUserDashboardData, DashboardData } from '../services/api';
 export default function Sidebar() {
   const pathname = usePathname();
   const { activeTab, setActiveTab } = useNavigation();
-  const { userName } = useAuth();
+  const { userName, user } = useAuth();
+  const currentName = user?.name || userName || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('mago_user') || '{}')?.name : null) || 'Mago Aspirante';
+  const initialLetter = currentName.trim().charAt(0).toUpperCase();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
 
   useEffect(() => {
@@ -91,10 +93,10 @@ export default function Sidebar() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 overflow-hidden">
               <div className="w-7 h-7 rounded-xl bg-btn-primary/15 border border-btn-primary/30 flex items-center justify-center text-btn-primary font-bold text-[11px] shrink-0">
-                {userName ? userName.trim().charAt(0).toUpperCase() : 'M'}
+                {initialLetter}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs font-bold truncate text-fg-primary">{userName || 'Mago Aspirante'}</p>
+                <p className="text-xs font-bold truncate text-fg-primary">{currentName}</p>
                 <p className="text-[10px] text-fg-secondary font-medium truncate">Mago Arcano</p>
               </div>
             </div>
