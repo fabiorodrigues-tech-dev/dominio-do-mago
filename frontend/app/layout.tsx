@@ -33,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-PT" className="dark" suppressHydrationWarning>
+    <html lang="pt-BR" className="dark" suppressHydrationWarning>
       <body
         className={`${inter.variable} font-sans bg-canvas text-fg-primary antialiased min-h-screen overflow-x-hidden relative selection:bg-btn-primary/30`}
       >

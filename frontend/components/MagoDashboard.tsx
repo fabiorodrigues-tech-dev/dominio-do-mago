@@ -40,7 +40,7 @@ import { useAuth } from '../contexts/AuthContext';
 export default function MagoDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const { activeTab, setActiveTab } = useNavigation();
-  const { userName, user } = useAuth();
+  const { userName, user, logout } = useAuth();
   const currentName = user?.name || userName || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('mago_user') || '{}')?.name : null) || 'Mago Aspirante';
   const [isForgeOpen, setIsForgeOpen] = useState(false);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<LeaderboardPeriod>('week');
@@ -81,9 +81,11 @@ export default function MagoDashboard() {
     mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeTab]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('mago_token');
-    window.location.href = '/login';
+  const handleLogout = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (typeof window !== 'undefined') {
+      await logout();
+    }
   };
 
   const pranaLevel = dashboardData?.pranaLevel ?? 100;

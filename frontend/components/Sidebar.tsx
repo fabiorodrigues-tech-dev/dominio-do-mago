@@ -23,7 +23,7 @@ import { getUserDashboardData, DashboardData } from '../services/api';
 export default function Sidebar() {
   const pathname = usePathname();
   const { activeTab, setActiveTab } = useNavigation();
-  const { userName, user } = useAuth();
+  const { userName, user, logout } = useAuth();
   const currentName = user?.name || userName || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('mago_user') || '{}')?.name : null) || 'Mago Aspirante';
   const initialLetter = currentName.trim().charAt(0).toUpperCase();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -50,10 +50,11 @@ export default function Sidebar() {
     return null;
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('mago_token');
-    localStorage.removeItem('nexus_token');
-    window.location.href = '/login';
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined') {
+      await logout();
+    }
   };
 
   const navItems = [

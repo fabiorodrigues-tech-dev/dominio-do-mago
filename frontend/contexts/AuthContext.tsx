@@ -12,7 +12,7 @@ interface AuthContextType {
   userName: string;
   user: any | null;
   login: (token: string, userId: string, userName?: string, userData?: any) => void;
-  logout: () => void;
+  logout: () => Promise<void> | void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/');
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
       localStorage.removeItem('mago_token');
       localStorage.removeItem('nexus_token');
@@ -112,15 +112,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.cookie = 'mago_token=; path=/; max-age=0; SameSite=Lax';
         document.cookie = 'nexus_token=; path=/; max-age=0; SameSite=Lax';
       }
+      
+      await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
       // Ignora erro
+    } finally {
+      setToken(null);
+      setUserId(null);
+      setUserName("Mago Aspirante");
+      setUser(null);
+      setIsAuthenticated(false);
+      router.push('/login');
     }
-    setToken(null);
-    setUserId(null);
-    setUserName("Mago Aspirante");
-    setUser(null);
-    setIsAuthenticated(false);
-    router.push('/login');
   };
 
   // Se estiver carregando na rota pública /login, NUNCA bloqueia com spinner global
