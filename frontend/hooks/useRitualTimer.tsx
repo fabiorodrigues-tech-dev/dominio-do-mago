@@ -12,10 +12,11 @@ export interface RitualTimerState {
   isMinimized: boolean;
   isOpen: boolean;
   effortLevel: number;
+  estimatedMinutes: number;
 }
 
 export interface RitualTimerContextType extends RitualTimerState {
-  startTimer: (action: IActionLike, initialEffort?: number) => void;
+  startTimer: (action: IActionLike, initialEffort?: number, estimatedMinutes?: number) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   stopTimer: () => void;
@@ -81,6 +82,7 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [effortLevel, setEffortLevel] = useState<number>(2);
+  const [estimatedMinutes, setEstimatedMinutes] = useState<number>(25);
 
   const secondsRef = useRef<number>(0);
   secondsRef.current = seconds;
@@ -90,6 +92,8 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   activeActionRef.current = activeAction;
   const effortLevelRef = useRef<number>(2);
   effortLevelRef.current = effortLevel;
+  const estimatedMinutesRef = useRef<number>(25);
+  estimatedMinutesRef.current = estimatedMinutes;
 
   // 1. Restaurar sessão do localStorage ao inicializar
   useEffect(() => {
@@ -102,6 +106,7 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (parsed.activeAction) {
           setActiveAction(parsed.activeAction);
           setEffortLevel(parsed.effortLevel || 2);
+          setEstimatedMinutes(parsed.estimatedMinutes || 25);
           setIsMinimized(Boolean(parsed.isMinimized));
           setIsOpen(Boolean(parsed.isOpen));
 
@@ -130,7 +135,8 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       running: boolean,
       minimized: boolean,
       open: boolean,
-      effort: number
+      effort: number,
+      estMinutes: number
     ) => {
       if (typeof window === 'undefined') return;
       if (!action) {
@@ -146,6 +152,7 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
           isMinimized: minimized,
           isOpen: open,
           effortLevel: effort,
+          estimatedMinutes: estMinutes,
         };
         localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(payload));
       } catch (e) {
@@ -168,7 +175,8 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
             true,
             isMinimized,
             isOpen,
-            effortLevelRef.current
+            effortLevelRef.current,
+            estimatedMinutesRef.current
           );
           return next;
         });
@@ -184,27 +192,28 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Controles
   const startTimer = useCallback(
-    (action: IActionLike, initialEffort: number = 2) => {
+    (action: IActionLike, initialEffort: number = 2, estMinutes: number = 25) => {
       setActiveAction(action);
       setSeconds(0);
       setIsRunning(true);
       setIsOpen(true);
       setIsMinimized(false);
       setEffortLevel(initialEffort);
-      saveToStorage(action, 0, true, false, true, initialEffort);
+      setEstimatedMinutes(estMinutes);
+      saveToStorage(action, 0, true, false, true, initialEffort, estMinutes);
     },
     [saveToStorage]
   );
 
   const pauseTimer = useCallback(() => {
     setIsRunning(false);
-    saveToStorage(activeAction, secondsRef.current, false, isMinimized, isOpen, effortLevel);
-  }, [activeAction, isMinimized, isOpen, effortLevel, saveToStorage]);
+    saveToStorage(activeAction, secondsRef.current, false, isMinimized, isOpen, effortLevel, estimatedMinutes);
+  }, [activeAction, isMinimized, isOpen, effortLevel, estimatedMinutes, saveToStorage]);
 
   const resumeTimer = useCallback(() => {
     setIsRunning(true);
-    saveToStorage(activeAction, secondsRef.current, true, isMinimized, isOpen, effortLevel);
-  }, [activeAction, isMinimized, isOpen, effortLevel, saveToStorage]);
+    saveToStorage(activeAction, secondsRef.current, true, isMinimized, isOpen, effortLevel, estimatedMinutes);
+  }, [activeAction, isMinimized, isOpen, effortLevel, estimatedMinutes, saveToStorage]);
 
   const stopTimer = useCallback(() => {
     setIsRunning(false);
@@ -212,25 +221,25 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setSeconds(0);
     setIsOpen(false);
     setIsMinimized(false);
-    saveToStorage(null, 0, false, false, false, 2);
+    saveToStorage(null, 0, false, false, false, 2, 25);
   }, [saveToStorage]);
 
   const resetTimer = useCallback(() => {
     setSeconds(0);
-    saveToStorage(activeAction, 0, isRunning, isMinimized, isOpen, effortLevel);
-  }, [activeAction, isRunning, isMinimized, isOpen, effortLevel, saveToStorage]);
+    saveToStorage(activeAction, 0, isRunning, isMinimized, isOpen, effortLevel, estimatedMinutes);
+  }, [activeAction, isRunning, isMinimized, isOpen, effortLevel, estimatedMinutes, saveToStorage]);
 
   const minimizeTimer = useCallback(() => {
     setIsOpen(false);
     setIsMinimized(true);
-    saveToStorage(activeAction, secondsRef.current, isRunning, true, false, effortLevel);
-  }, [activeAction, isRunning, effortLevel, saveToStorage]);
+    saveToStorage(activeAction, secondsRef.current, isRunning, true, false, effortLevel, estimatedMinutes);
+  }, [activeAction, isRunning, effortLevel, estimatedMinutes, saveToStorage]);
 
   const expandTimer = useCallback(() => {
     setIsMinimized(false);
     setIsOpen(true);
-    saveToStorage(activeAction, secondsRef.current, isRunning, false, true, effortLevel);
-  }, [activeAction, isRunning, effortLevel, saveToStorage]);
+    saveToStorage(activeAction, secondsRef.current, isRunning, false, true, effortLevel, estimatedMinutes);
+  }, [activeAction, isRunning, effortLevel, estimatedMinutes, saveToStorage]);
 
   const openModal = useCallback(() => {
     setIsOpen(true);
@@ -271,7 +280,7 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setSeconds(0);
       setIsOpen(false);
       setIsMinimized(false);
-      saveToStorage(null, 0, false, false, false, 2);
+      saveToStorage(null, 0, false, false, false, 2, 25);
 
       return response;
     } catch (err: any) {
@@ -291,6 +300,7 @@ export const RitualTimerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         isMinimized,
         isOpen,
         effortLevel,
+        estimatedMinutes,
         startTimer,
         pauseTimer,
         resumeTimer,

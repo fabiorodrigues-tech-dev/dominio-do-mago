@@ -24,9 +24,8 @@ export function GlobalTimer() {
   const element: ElementId = normalizeElement(timer.activeAction.element || timer.activeAction.areaId);
 
   // O TimerFocusModal espera 'totalSeconds' e 'remainingSeconds'. 
-  // No caso de gamificação, queremos que o círculo se preencha até o fim do estimated_minutes.
-  // Se não houver estimated_minutes, podemos usar 25 min (1500s) por padrão.
-  const estimatedSeconds = ((timer.activeAction as any).estimated_minutes || 25) * 60;
+  // No caso de gamificação, queremos que o círculo se preencha até o fim do tempo selecionado.
+  const estimatedSeconds = (timer.estimatedMinutes || 25) * 60;
   // O remainingSeconds é apenas para UI do círculo fechar. O tempo vai decrementar visualmente, ou incrementar?
   // O hook conta os segundos para cima (0 -> infinito).
   // A UI do TimerFocusModal faz: progress = 1 - (remainingSeconds / totalSeconds).

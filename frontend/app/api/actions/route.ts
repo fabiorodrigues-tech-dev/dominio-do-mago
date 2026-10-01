@@ -82,6 +82,7 @@ export async function POST(req: Request) {
       isCompleted: false,
       completed: false,
       createdAt: new Date().toISOString(),
+      scheduledDate: body.scheduledDate || new Date().toISOString().split('T')[0],
     };
     
     // Adiciona ao topo (ou fim) do array

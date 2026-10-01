@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Play, Flame, Mountain, Droplets, Wind } from "lucide-react";
+import { Play, Flame, Mountain, Droplets, Wind, Check } from "lucide-react";
 import { ELEMENTS, ElementId, GLASS, normalizeElement } from "@/lib/design-tokens";
 
 const ELEMENT_ICONS: Record<ElementId, typeof Flame> = {
@@ -21,6 +21,7 @@ export interface RitualTaskCardProps {
   onStart?: () => void;
   /** Marca o card como concluído (aplica opacidade e substitui o botão) */
   completed?: boolean;
+  onToggle?: () => void;
 }
 
 /**
@@ -35,6 +36,7 @@ export function RitualTaskCard({
   estimatedLabel,
   onStart,
   completed = false,
+  onToggle,
 }: RitualTaskCardProps) {
   const normalizedElement = normalizeElement(element);
   const theme = ELEMENTS[normalizedElement] || ELEMENTS.fire;
@@ -50,15 +52,16 @@ export function RitualTaskCard({
         completed ? "opacity-50" : "",
       ].join(" ")}
     >
-      <span
+      <button
+        type="button"
+        onClick={onToggle}
         className={[
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-          theme.gradientClass,
-          theme.glowClass,
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all cursor-pointer",
+          completed ? "bg-emerald-500 text-white" : `${theme.gradientClass} ${theme.glowClass} text-white`
         ].join(" ")}
       >
-        <Icon className="h-5 w-5 text-white" strokeWidth={2} />
-      </span>
+        {completed ? <Check className="h-5 w-5" strokeWidth={3} /> : <Icon className="h-5 w-5" strokeWidth={2} />}
+      </button>
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-slate-800 dark:text-white">{title}</p>
