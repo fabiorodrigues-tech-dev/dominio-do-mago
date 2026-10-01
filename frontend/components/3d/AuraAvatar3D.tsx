@@ -158,7 +158,16 @@ export default function AuraAvatar3D({ auraRadius = 5.0 }: AuraAvatar3DProps) {
         </span>
       </div>
 
-      <Canvas camera={{ position: [0, 0.9, 3.6], fov: 42 }}>
+      <Canvas 
+        camera={{ position: [0, 0.9, 3.6], fov: 42 }}
+        onCreated={({ gl }) => {
+          // Prevenção e tratamento seguro de contextlost em HMR / recarregamentos rápidos
+          gl.domElement.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault();
+            console.warn('THREE.WebGLRenderer: Context Lost. Tentando preservar estado...');
+          });
+        }}
+      >
         {/* Luzes da Atmosfera */}
         <ambientLight intensity={1.0} />
         <directionalLight position={[4, 7, 4]} intensity={2.0} color="#f5d0fe" />

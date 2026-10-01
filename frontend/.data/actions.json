@@ -1,0 +1,19 @@
+[
+  {
+    "id": "action_1790867402275_ooi116h",
+    "title": "Estudar programação",
+    "description": "",
+    "areaId": "area-ar",
+    "taskEnergyType": "NEUTRAL",
+    "baseValue": 20,
+    "recurrenceEnabled": true,
+    "recurrenceType": "DAILY",
+    "lifecycleType": "HABIT",
+    "element": "ar",
+    "xpReward": 20,
+    "type": "habit",
+    "isCompleted": false,
+    "completed": false,
+    "createdAt": "2026-10-01T15:10:02.275Z"
+  }
+]
