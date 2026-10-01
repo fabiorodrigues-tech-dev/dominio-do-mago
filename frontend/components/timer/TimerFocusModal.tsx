@@ -149,11 +149,17 @@ export function TimerFocusModal({
 
             {/* Controles */}
             {isRunning ? (
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-6">
                 <ControlButton
                   icon={<Pause className="h-5 w-5" />}
                   label="Pausar"
                   onClick={onTogglePlay}
+                />
+                <ControlButton
+                  icon={<Check className="h-5 w-5 text-emerald-400" />}
+                  label="Concluir"
+                  onClick={onFinish}
+                  emerald
                 />
                 <ControlButton
                   icon={<X className="h-5 w-5" />}
@@ -214,11 +220,13 @@ function ControlButton({
   label,
   onClick,
   muted = false,
+  emerald = false,
 }: {
   icon: ReactNode;
   label: string;
   onClick: () => void;
   muted?: boolean;
+  emerald?: boolean;
 }) {
   return (
     <div className="flex flex-col items-center gap-2">
@@ -229,9 +237,13 @@ function ControlButton({
           "flex h-14 w-14 items-center justify-center rounded-full transition-colors",
           muted
             ? "bg-white/5 text-white/60 hover:bg-white/10"
-            : "bg-white/10 text-white hover:bg-white/20",
-          GLASS.pill,
-        ].join(" ")}
+            : emerald 
+              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30"
+              : "bg-white/10 text-white hover:bg-white/20",
+          !emerald && GLASS.pill,
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         {icon}
       </button>

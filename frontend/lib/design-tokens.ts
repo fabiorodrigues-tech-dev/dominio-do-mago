@@ -69,7 +69,14 @@ export const ELEMENT_ORDER: ElementId[] = ["fire", "earth", "water", "air"];
 
 export function normalizeElement(el?: string | ElementId): ElementId {
   if (!el) return 'fire';
-  const normalized = el.toLowerCase() as ElementId;
+  const raw = el.toLowerCase();
+  
+  if (raw.includes('fogo') || raw.includes('fire')) return 'fire';
+  if (raw.includes('agu') || raw.includes('água') || raw.includes('water')) return 'water';
+  if (raw.includes('terr') || raw.includes('earth')) return 'earth';
+  if (raw.includes('ar') || raw.includes('air')) return 'air';
+  
+  const normalized = raw as ElementId;
   return ELEMENTS[normalized] ? normalized : 'fire';
 }
 
