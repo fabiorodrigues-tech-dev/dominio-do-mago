@@ -147,6 +147,22 @@ function AvatarScene({ auraRadius = 5.0 }: { auraRadius?: number }) {
 // -------------------------------------------------------------
 export default function AuraAvatar3D({ auraRadius = 5.0 }: AuraAvatar3DProps) {
   const currentRadius = auraRadius || 5.0;
+  const [hasContextLost, setHasContextLost] = React.useState(false);
+
+  if (hasContextLost) {
+    return (
+      <div className="w-full h-full min-h-[360px] md:min-h-[420px] bg-black/40 rounded-3xl flex flex-col items-center justify-center border border-rose-500/30">
+        <span className="text-rose-400 font-bold text-xs mb-2">⚠ Visão Arcana Perdida (WebGL)</span>
+        <span className="text-fg-secondary text-[10px] mb-4">Aguardando estabilização da rede...</span>
+        <button 
+          onClick={() => setHasContextLost(false)} 
+          className="px-4 py-2 rounded-xl bg-btn-primary/20 text-btn-primary text-xs font-bold border border-btn-primary/40"
+        >
+          Restaurar Conexão
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full min-h-[360px] md:min-h-[420px] bg-transparent rounded-3xl overflow-hidden relative select-none">
@@ -164,7 +180,12 @@ export default function AuraAvatar3D({ auraRadius = 5.0 }: AuraAvatar3DProps) {
           // Prevenção e tratamento seguro de contextlost em HMR / recarregamentos rápidos
           gl.domElement.addEventListener('webglcontextlost', (e) => {
             e.preventDefault();
-            console.warn('THREE.WebGLRenderer: Context Lost. Tentando preservar estado...');
+            console.warn('THREE.WebGLRenderer: Context Lost. Fallback ativado.');
+            setHasContextLost(true);
+          });
+          gl.domElement.addEventListener('webglcontextrestored', () => {
+            console.log('THREE.WebGLRenderer: Context Restored.');
+            setHasContextLost(false);
           });
         }}
       >

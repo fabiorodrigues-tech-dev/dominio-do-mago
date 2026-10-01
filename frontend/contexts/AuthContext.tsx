@@ -138,6 +138,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
+  // Reatividade Global: recarrega o estado de user sempre que uma ação é concluída
+  useEffect(() => {
+    const handleRefreshUser = async () => {
+      if (!token) return;
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUser(data.user);
+            if (data.user.name) setUserName(data.user.name);
+            localStorage.setItem('mago_user', JSON.stringify(data.user));
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao atualizar usuário via refresh event', err);
+      }
+    };
+
+    window.addEventListener('nexus:refresh-dashboard', handleRefreshUser);
+    return () => window.removeEventListener('nexus:refresh-dashboard', handleRefreshUser);
+  }, [token]);
+
   return (
     <AuthContext.Provider value={{ isAuthenticated, isLoading, token, userId, userName, user, login, logout }}>
       {children}

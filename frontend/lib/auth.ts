@@ -25,6 +25,9 @@ export interface UserRecord {
   nenCategory?: string;
   auraColor?: string;
   ritualsCompleted?: number;
+  hp?: number;
+  maxHp?: number;
+  maxPrana?: number;
   createdAt: string;
 }
 
@@ -48,6 +51,9 @@ export interface UserPublicProfile {
   nenCategory?: string;
   auraColor?: string;
   ritualsCompleted?: number;
+  hp?: number;
+  maxHp?: number;
+  maxPrana?: number;
   createdAt: string;
 }
 
@@ -183,6 +189,17 @@ export function findUserById(id: string): UserRecord | null {
   return null;
 }
 
+export function updateUserRpgStats(email: string, updates: Partial<UserRecord>): UserRecord | null {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = usersMap.get(normalizedEmail);
+  if (!user) return null;
+  
+  Object.assign(user, updates);
+  usersMap.set(normalizedEmail, user);
+  persistUsersToFile();
+  return user;
+}
+
 export async function createUser(data: {
   name: string;
   email: string;
@@ -316,6 +333,9 @@ export function toPublicProfile(user: UserRecord): UserPublicProfile {
     nenCategory: user.nenCategory || 'Transmuter',
     auraColor: user.auraColor || '#F97316',
     ritualsCompleted: user.ritualsCompleted || 0,
+    hp: user.hp ?? 100,
+    maxHp: user.maxHp ?? 100,
+    maxPrana: user.maxPrana ?? 100,
     createdAt: user.createdAt,
   };
 }

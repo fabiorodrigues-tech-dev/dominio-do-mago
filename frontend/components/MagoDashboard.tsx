@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import AuraAvatar3D from './3d/AuraAvatar3D';
-import OrchestratorChat from './OrchestratorChat'; // legacy – kept for fallback
 import OrchestratorChatView from '@/components/orchestrator/OrchestratorChatView';
 import TemporalBoard from './TemporalBoard';
 import KnowledgeGrimoire from './KnowledgeGrimoire';
@@ -63,9 +62,23 @@ export default function MagoDashboard() {
   };
 
   useEffect(() => {
+    // 1. Check game over conditions (Daily Punishment) apenas no MOUNT inicial
+    const checkPunishment = async () => {
+      try {
+        const pRes = await api.post('/actions/daily-punishment');
+        if (pRes.data?.punished) {
+          alert(pRes.data.message);
+        }
+      } catch (pErr) {
+        console.warn("Erro ao processar punição diária:", pErr);
+      }
+    };
+    checkPunishment();
+    
+    // 2. Carrega dashboard
     loadDashboard();
 
-    // Listener para atualização dinâmica em tempo real
+    // Listener para atualização dinâmica em tempo real (Refresh das Barras)
     const handleRefresh = () => {
       loadDashboard();
     };

@@ -1,5 +1,43 @@
 [
   {
+    "id": "action_1790871134448_r89n5ob",
+    "title": "Lazer, assistir TV",
+    "description": "",
+    "areaId": "area-ar",
+    "taskEnergyType": "NEUTRAL",
+    "baseValue": 20,
+    "recurrenceEnabled": true,
+    "recurrenceType": "DAILY",
+    "lifecycleType": "HABIT",
+    "element": "ar",
+    "xpReward": 20,
+    "type": "habit",
+    "isCompleted": true,
+    "completed": true,
+    "createdAt": "2026-10-01T16:12:14.449Z",
+    "scheduledDate": "2026-10-01",
+    "lastCompletedAt": "2026-10-01T16:12:22.402Z"
+  },
+  {
+    "id": "action_1790871085979_xa4hje9",
+    "title": "Café da manhã",
+    "description": "",
+    "areaId": "area-terra",
+    "taskEnergyType": "NEUTRAL",
+    "baseValue": 20,
+    "recurrenceEnabled": true,
+    "recurrenceType": "DAILY",
+    "lifecycleType": "HABIT",
+    "element": "terra",
+    "xpReward": 20,
+    "type": "habit",
+    "isCompleted": true,
+    "completed": true,
+    "createdAt": "2026-10-01T16:11:25.979Z",
+    "scheduledDate": "2026-10-01",
+    "lastCompletedAt": "2026-10-01T16:12:30.129Z"
+  },
+  {
     "id": "action_1790867402275_ooi116h",
     "title": "Estudar programação",
     "description": "",
@@ -12,8 +50,9 @@
     "element": "ar",
     "xpReward": 20,
     "type": "habit",
-    "isCompleted": false,
-    "completed": false,
-    "createdAt": "2026-10-01T15:10:02.275Z"
+    "isCompleted": true,
+    "completed": true,
+    "createdAt": "2026-10-01T15:10:02.275Z",
+    "lastCompletedAt": "2026-10-01T16:12:29.481Z"
   }
 ]
