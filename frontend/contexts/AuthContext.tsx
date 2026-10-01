@@ -126,18 +126,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Se estiver carregando na rota pública /login, NUNCA bloqueia com spinner global
-  if (isLoading && pathname !== '/login') {
-    return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs font-mono text-fg-secondary">Sintonizando Essência Arcana...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Reatividade Global: recarrega o estado de user sempre que uma ação é concluída
   useEffect(() => {
     const handleRefreshUser = async () => {
@@ -159,9 +147,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    window.addEventListener('nexus:refresh-dashboard', handleRefreshUser);
-    return () => window.removeEventListener('nexus:refresh-dashboard', handleRefreshUser);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('nexus:refresh-dashboard', handleRefreshUser);
+      return () => window.removeEventListener('nexus:refresh-dashboard', handleRefreshUser);
+    }
   }, [token]);
+
+  // Se estiver carregando na rota pública /login, NUNCA bloqueia com spinner global
+  if (isLoading && pathname !== '/login') {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs font-mono text-fg-secondary">Sintonizando Essência Arcana...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, isLoading, token, userId, userName, user, login, logout }}>
