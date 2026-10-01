@@ -1,0 +1,48 @@
+[
+  {
+    "id": "64bc950d-d079-4e44-b006-edb64aa194bc",
+    "name": "Fábio Rodrigues (Mestre Arcano)",
+    "email": "fabioandre777@gmail.com",
+    "passwordHash": "$2b$10$WaDULM6cHHRfuwY210uGI.zoXJBTyUibc9HUaiwLaXcz7UWK/zilm",
+    "arcanoLevel": 42,
+    "pranaLevel": 100,
+    "globalXp": 15420,
+    "auraRadius": 85,
+    "fireElement": 90,
+    "waterElement": 75,
+    "earthElement": 80,
+    "airElement": 95,
+    "avatarGlbUrl": "/avatar_fabio.glb",
+    "createdAt": "2026-09-29T16:33:04.868Z"
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Mago Aprendiz",
+    "email": "mago@dominio.dev",
+    "passwordHash": "$2b$10$RAlnkokUhW7S7cjx1moCU.SFYpQImuw8u/YY7KQxCLpN0iswFvOI6",
+    "arcanoLevel": 1,
+    "pranaLevel": 100,
+    "globalXp": 120,
+    "auraRadius": 10,
+    "fireElement": 25,
+    "waterElement": 25,
+    "earthElement": 25,
+    "airElement": 25,
+    "createdAt": "2026-09-29T16:33:04.940Z"
+  },
+  {
+    "id": "mago_1790699585028_kpvvtxn",
+    "name": "Mago Merlim",
+    "email": "merlim@dominio.dev",
+    "passwordHash": "$2b$10$dIbFp3JP6w.tD2SYCViPNufgfsd77ffuDzxHykjcTQxJ8r/zvOati",
+    "arcanoLevel": 1,
+    "pranaLevel": 100,
+    "globalXp": 0,
+    "auraRadius": 15,
+    "fireElement": 25,
+    "waterElement": 25,
+    "earthElement": 25,
+    "airElement": 25,
+    "createdAt": "2026-09-29T16:33:05.028Z"
+  }
+]

@@ -1,0 +1,77 @@
+import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+
+const DATA_DIR = path.join(process.cwd(), '.data');
+const DATA_FILE = path.join(DATA_DIR, 'actions.json');
+const FALLBACK_FILE = '/tmp/actions.json';
+
+const getActionsData = () => {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(DATA_FILE)) {
+      const data = fs.readFileSync(DATA_FILE, 'utf-8');
+      return JSON.parse(data);
+    } else if (fs.existsSync(FALLBACK_FILE)) {
+      const data = fs.readFileSync(FALLBACK_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.warn("Erro ao carregar actions.json:", error);
+  }
+  return [];
+};
+
+const saveActionsData = (data: any[]) => {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (error) {
+    console.warn("Falha ao salvar no diretório .data, tentando /tmp:", error);
+    try {
+      fs.writeFileSync(FALLBACK_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (fallbackError) {
+      console.error("Falha ao salvar em fallback /tmp:", fallbackError);
+    }
+  }
+};
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const actions = getActionsData();
+    const actionIndex = actions.findIndex((a: any) => a.id === params.id);
+    
+    if (actionIndex === -1) {
+      return NextResponse.json({ success: false, message: 'Action not found' }, { status: 404 });
+    }
+
+    const action = actions[actionIndex];
+    const willComplete = !action.isCompleted;
+    
+    action.isCompleted = willComplete;
+    action.completed = willComplete; // for legacy compatibility
+    
+    if (willComplete) {
+      action.lastCompletedAt = new Date().toISOString();
+    }
+    
+    saveActionsData(actions);
+
+    return NextResponse.json({
+      success: true,
+      action: action,
+      finalScore: action.baseValue || 20,
+      currentPrana: 100, // mock prana for now, properly implemented it would read from a prana store
+      exhausted: false,
+      pranaMessage: "Prana estável.",
+      message: willComplete ? `Ritual concluído! +${action.baseValue || 20} XP.` : "Ação reaberta."
+    }, { status: 200 });
+
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
